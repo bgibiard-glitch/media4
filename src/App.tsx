@@ -21,11 +21,11 @@ const COLORS = [
 ];
 
 const PARTNERS = [
-  { name: "Chaux Tilia", logo: "https://logo.clearbit.com/chaux-tilia.fr", url: "https://www.chaux-tilia.fr/" },
-  { name: "Couleurs & Matières", logo: "https://logo.clearbit.com/couleurs-et-matieres.com", url: "https://www.couleurs-et-matieres.com/" },
-  { name: "Licef", logo: "https://logo.clearbit.com/licef.fr", url: "https://www.licef.fr/" },
-  { name: "Euromair", logo: "https://logo.clearbit.com/euromair.com", url: "https://www.euromair.com/" },
-  { name: "EF Factory", logo: "https://logo.clearbit.com/ef-factory.com", url: "https://ef-factory.com/fr/" },
+  { name: "Licef", logo: "https://media4-xues.vercel.app/partenaires/1.png", url: "https://www.licef.fr/", desc: "Enduits & mortiers" },
+  { name: "EF Factory", logo: "https://media4-xues.vercel.app/partenaires/2.png", url: "https://ef-factory.com/fr/", desc: "Mobilier & agencement" },
+  { name: "Couleurs & Matières", logo: "https://media4-xues.vercel.app/partenaires/3.png", url: "https://www.couleurs-et-matieres.com/", desc: "Peintures décoratives" },
+  { name: "La Chaux Pouzzolanique", logo: "https://media4-xues.vercel.app/partenaires/4.png", url: "https://www.chaux-tilia.fr/", desc: "Chaux naturelle" },
+  { name: "Euromair", logo: "https://media4-xues.vercel.app/partenaires/5.png", url: "https://www.euromair.com/", desc: "Matériel de projection" },
 ];
 
 const VIDEO_CONFIG = {
@@ -337,7 +337,7 @@ const Home = ({ onSelect }: { onSelect: (btn: BtnConfig) => void }) => {
                 position: "absolute", inset: 0,
                 backgroundImage: `url(${btn.bgImage})`,
                 backgroundSize: "cover", backgroundPosition: "center",
-                opacity: 0.25,
+                opacity: 0.1,
               }} />
               <div style={{
                 position: "absolute", top: 0, left: 0, bottom: 0, width: 4,
@@ -704,7 +704,7 @@ const Partenaires = () => {
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{p.name}</div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 3, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>Partenaire officiel</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 3, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>{p.desc}</div>
               </div>
             </a>
           ))}
