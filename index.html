@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
+  <!-- ═══ PWA Meta Tags ═══ -->
+  <meta name="theme-color" content="#002855" />
+  <meta name="background-color" content="#001A3D" />
+  <meta name="application-name" content="UNIKALO Totem" />
+  <meta name="description" content="Borne interactive UNIKALO — Propulsé par Media4" />
+
+  <!-- ═══ Apple PWA (iOS) ═══ -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="UNIKALO Totem" />
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+  <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png" />
+  <link rel="apple-touch-icon" sizes="128x128" href="/icons/icon-128x128.png" />
+
+  <!-- ═══ Microsoft (Windows PWA) ═══ -->
+  <meta name="msapplication-TileColor" content="#002855" />
+  <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
+
+  <!-- ═══ Manifest ═══ -->
+  <link rel="manifest" href="/manifest.json" />
+
+  <!-- ═══ Favicon ═══ -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-96x96.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-72x72.png" />
+
+  <!-- ═══ Fullscreen / Kiosk helpers ═══ -->
+  <style>
+    /* Prevent pull-to-refresh, overscroll, text selection on totem */
+    html, body {
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: touch;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    /* Hide scrollbars globally */
+    ::-webkit-scrollbar { display: none; }
+    * { scrollbar-width: none; }
+
+    /* Splash screen */
+    #splash {
+      position: fixed; inset: 0; z-index: 99999;
+      background: #001A3D;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      transition: opacity 0.5s ease;
+    }
+    #splash.hide { opacity: 0; pointer-events: none; }
+    #splash img { height: 48px; margin-bottom: 24px; }
+    #splash .dots { display: flex; gap: 6px; }
+    #splash .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      animation: dotPulse 1.2s ease infinite;
+    }
+    #splash .dot:nth-child(2) { animation-delay: 0.15s; }
+    #splash .dot:nth-child(3) { animation-delay: 0.3s; }
+    #splash .dot:nth-child(4) { animation-delay: 0.45s; }
+    @keyframes dotPulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+  </style>
+
+  <title>UNIKALO Totem — Borne Interactive</title>
+</head>
+<body>
+  <!-- Splash screen pendant le chargement -->
+  <div id="splash">
+    <img src="https://media4-duplicated-z3xl.bolt.host/logo.png" alt="Logo" onerror="this.style.display='none'" />
+    <div class="dots">
+      <div class="dot" style="background:#C8102E"></div>
+      <div class="dot" style="background:#4A7FB5"></div>
+      <div class="dot" style="background:#E8C840"></div>
+      <div class="dot" style="background:#7D9B76"></div>
+    </div>
+  </div>
+
+  <!-- React root -->
+  <div id="root"></div>
+
+  <!-- ═══ Vite entry (adapter si CRA ou autre) ═══ -->
+  <script type="module" src="/src/main.jsx"></script>
+
+  <!-- ═══ Service Worker Registration ═══ -->
+  <script>
+    // Hide splash once app loads
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const splash = document.getElementById('splash');
+        if (splash) {
+          splash.classList.add('hide');
+          setTimeout(() => splash.remove(), 600);
+        }
+      }, 800);
+    });
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => {
+            console.log('🚀 SW registered:', reg.scope);
+
+            // Auto-update check every 30min
+            setInterval(() => reg.update(), 30 * 60 * 1000);
+          })
+          .catch((err) => console.warn('SW registration failed:', err));
+      });
+    }
+
+    // Request fullscreen on first touch (pour mode kiosk totem)
+    let fullscreenRequested = false;
+    document.addEventListener('click', () => {
+      if (fullscreenRequested) return;
+      fullscreenRequested = true;
+
+      const el = document.documentElement;
+      const rfs = el.requestFullscreen
+        || el.webkitRequestFullscreen
+        || el.mozRequestFullScreen
+        || el.msRequestFullscreen;
+      if (rfs) {
+        rfs.call(el).catch(() => {});
+      }
+    }, { once: true });
+
+    // Prevent context menu on totem
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // Wake Lock API — empêche la mise en veille de l'écran
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          await navigator.wakeLock.request('screen');
+          console.log('🔆 Wake Lock actif');
+        }
+      } catch (err) {
+        console.warn('Wake Lock non supporté:', err);
+      }
+    }
+    requestWakeLock();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') requestWakeLock();
+    });
+  </script>
+</body>
+</html>
