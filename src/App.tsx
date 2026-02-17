@@ -145,7 +145,7 @@ const LiveClock = ({ style = {} }: { style?: CSSProperties }) => {
 // ─── FLOATING PARTICLES ✨ ────────────────────────────────
 const Particles = ({ count = 20 }: { count?: number }) => {
   const particles = useRef(
-    Array.from({ length: count }, (_, i) => ({
+    Array.from({ length: count }, () => ({
       x: Math.random() * 100,
       y: Math.random() * 100,
       size: Math.random() * 3 + 1,
