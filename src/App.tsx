@@ -337,7 +337,7 @@ const Home = ({ onSelect }: { onSelect: (btn: BtnConfig) => void }) => {
                 position: "absolute", inset: 0,
                 backgroundImage: `url(${btn.bgImage})`,
                 backgroundSize: "cover", backgroundPosition: "center",
-                opacity: 0.1,
+                opacity: 0.25,
               }} />
               <div style={{
                 position: "absolute", top: 0, left: 0, bottom: 0, width: 4,
