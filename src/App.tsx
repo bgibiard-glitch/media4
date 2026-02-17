@@ -350,15 +350,42 @@ const BTNS: BtnConfig[] = [
 
 const Home = ({ onSelect, onBack }: { onSelect: (btn: BtnConfig) => void; onBack: () => void }) => {
   const [vis, setVis] = useState(false);
+  const bgVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => { requestAnimationFrame(() => setVis(true)); }, []);
+
+  // Vidéo au ralenti extrême (0.15x = ~7x plus lent)
+  useEffect(() => {
+    if (bgVideoRef.current) {
+      bgVideoRef.current.playbackRate = 0.15;
+      bgVideoRef.current.play().catch(() => {});
+    }
+  }, []);
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", background: B.navyDeep, position: "relative", overflow: "hidden" }}>
 
-      {/* Background */}
+      {/* LAYER 0 — Vidéo ultra ralentie en fond */}
+      <video
+        ref={bgVideoRef}
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{
+          position: "absolute", inset: 0, zIndex: 0,
+          width: "100%", height: "100%",
+          objectFit: "cover",
+          opacity: 0.25,
+          filter: "blur(2px)",
+        }}
+      >
+        <source src={VIDEO_URL} type="video/mp4" />
+      </video>
+
+      {/* LAYER 1 — Dark overlay sur la vidéo */}
       <div style={{
         position: "absolute", inset: 0, zIndex: 0,
-        background: `linear-gradient(160deg, ${B.navyDeep} 0%, #0D1F3C 40%, #162544 70%, #0A1628 100%)`,
+        background: `linear-gradient(160deg, ${B.navyDeep}e0 0%, #0D1F3Ce0 40%, #162544d0 70%, #0A1628e0 100%)`,
       }} />
       {[
         { c: "#C8102E", x: "5%", y: "30%", s: 350 },
