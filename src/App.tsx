@@ -218,7 +218,7 @@ const Attract = ({ onTouch, videoRef }: { onTouch: () => void; videoRef: React.R
   }, []);
 
   return (
-    <div onClick={onTouch} className="screen-enter" style={{ position: "absolute", inset: 0, cursor: "pointer", overflow: "hidden", background: "#000" }}>
+    <div onClick={onTouch} className="screen-enter" style={{ position: "absolute", inset: 0, cursor: "pointer", overflow: "hidden" }}>
 
       <Particles count={15} />
 
@@ -436,7 +436,7 @@ const Home = ({ onSelect, onBack, videoRef }: { onSelect: (btn: BtnConfig) => vo
   }, []);
 
   return (
-    <div className="screen-enter" style={{ height: "100%", display: "flex", flexDirection: "column", background: B.navyDeep, position: "relative", overflow: "hidden" }}>
+    <div className="screen-enter" style={{ height: "100%", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
 
       <Particles count={12} />
 
@@ -867,7 +867,7 @@ export default function App() {
   };
 
   // ✨ Opacité vidéo selon l'écran
-  const videoOpacity = screen === "attract" ? 1 : screen === "home" ? 0.2 : 0;
+  const videoOpacity = screen === "attract" ? 1 : screen === "home" ? 0.35 : 0;
 
   return (
     <>
@@ -901,7 +901,7 @@ export default function App() {
         {screen === "home" && (
           <div style={{
             position: "absolute", inset: 0, zIndex: 1,
-            background: `linear-gradient(160deg, ${B.navyDeep}e8 0%, #0D1F3Ce0 40%, #162544d8 70%, #0A1628e8 100%)`,
+            background: `linear-gradient(160deg, ${B.navyDeep}cc 0%, #0D1F3Cc0 40%, #162544b8 70%, #0A1628cc 100%)`,
             transition: "opacity 0.5s ease",
           }} />
         )}
