@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import type { ReactNode, CSSProperties } from "react";
 
 // ═══════════════════════════════════════════════════════════
 // UNIKALO TOTEM — V2 CINÉMATIQUE
@@ -96,15 +97,15 @@ const GlobalStyles = () => (
 );
 
 // ─── COLOR STRIP ──────────────────────────────────────────
-const Strip = ({ h = 4, style = {} }) => (
+const Strip = ({ h = 4, style = {} }: { h?: number; style?: CSSProperties }) => (
   <div style={{ display: "flex", height: h, ...style }}>
     {COLORS.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}
   </div>
 );
 
 // ─── ICONS (SVG) ──────────────────────────────────────────
-const Icon = ({ name, size = 24, color = "currentColor" }) => {
-  const paths = {
+const Icon = ({ name, size = 24, color = "currentColor" }: { name: string; size?: number; color?: string }) => {
+  const paths: Record<string, ReactNode> = {
     web: <><circle cx="12" cy="12" r="10" strokeWidth="1.5"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" strokeWidth="1.5"/></>,
     pdf: <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" strokeWidth="1.5"/><polyline points="14 2 14 8 20 8" strokeWidth="1.5"/><path d="M9 13h2m-2 3h4" strokeWidth="1.5"/></>,
     partners: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" strokeWidth="1.5"/><circle cx="9" cy="7" r="4" strokeWidth="1.5"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" strokeWidth="1.5"/></>,
@@ -135,10 +136,10 @@ const VIDEO_CONFIG = {
   mp4Url: "",
 };
 
-const Attract = ({ onTouch }) => {
+const Attract = ({ onTouch }: { onTouch: () => void }) => {
   const [line, setLine] = useState(0);
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const videoRef = useRef(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const taglines = [
     "Fabricant de peintures depuis 1936.",
     "110 000+ teintes à votre disposition.",
@@ -285,8 +286,8 @@ const Attract = ({ onTouch }) => {
               src="https://media4-duplicated-z3xl.bolt.host/logo.png"
               alt="Unikalo"
               style={{ height: 56, display: "block" }}
-              onError={e => {
-                e.target.outerHTML = `<span style="font-size:44px;font-weight:900;letter-spacing:8px;color:#fff;font-family:Outfit,sans-serif">UNIKALO</span>`;
+              onError={(e) => {
+                (e.target as HTMLElement).outerHTML = `<span style="font-size:44px;font-weight:900;letter-spacing:8px;color:#fff;font-family:Outfit,sans-serif">UNIKALO</span>`;
               }}
             />
           </div>
@@ -367,7 +368,7 @@ const Attract = ({ onTouch }) => {
           <img
             src="https://media4-duplicated-z3xl.bolt.host/logo.png"
             alt="Unikalo" style={{ height: 18, opacity: 0.3 }}
-            onError={e => { e.target.style.display = "none"; }}
+            onError={(e) => { (e.target as HTMLElement).style.display = "none"; }}
           />
           <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", fontFamily: "'JetBrains Mono', monospace" }}>
             {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
@@ -382,7 +383,19 @@ const Attract = ({ onTouch }) => {
 // ═════════════════════════════════════════════════════════════
 // 2. HOME — 3 boutons uniquement
 // ═════════════════════════════════════════════════════════════
-const BTNS = [
+interface BtnConfig {
+  id: string;
+  label: string;
+  sub: string;
+  icon: string;
+  accent: string;
+  gradient: string;
+  type: string;
+  url?: string;
+  bgImage: string;
+}
+
+const BTNS: BtnConfig[] = [
   {
     id: "site",
     label: "Site Web",
@@ -416,7 +429,7 @@ const BTNS = [
   },
 ];
 
-const Home = ({ onSelect }) => {
+const Home = ({ onSelect }: { onSelect: (btn: BtnConfig) => void }) => {
   const [vis, setVis] = useState(false);
   useEffect(() => { requestAnimationFrame(() => setVis(true)); }, []);
 
@@ -456,7 +469,7 @@ const Home = ({ onSelect }) => {
           <img
             src="https://media4-duplicated-z3xl.bolt.host/logo.png"
             alt="Unikalo" style={{ height: 34 }}
-            onError={e => { e.target.outerHTML = `<span style="font-size:18px;font-weight:900;letter-spacing:3px;color:#fff">UNIKALO</span>`; }}
+            onError={(e) => { (e.target as HTMLElement).outerHTML = `<span style="font-size:18px;font-weight:900;letter-spacing:3px;color:#fff">UNIKALO</span>`; }}
           />
           <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.12)" }} />
           <div>
@@ -591,7 +604,7 @@ const Home = ({ onSelect }) => {
         <img
           src="https://media4-duplicated-z3xl.bolt.host/logo.png"
           alt="Unikalo" style={{ height: 18, opacity: 0.25 }}
-          onError={e => { e.target.style.display = "none"; }}
+          onError={(e) => { (e.target as HTMLElement).style.display = "none"; }}
         />
         <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", fontFamily: "'JetBrains Mono', monospace" }}>
           {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
@@ -605,7 +618,7 @@ const Home = ({ onSelect }) => {
 // ═════════════════════════════════════════════════════════════
 // SHELL — Layout pour pages de contenu
 // ═════════════════════════════════════════════════════════════
-const Shell = ({ btn, onHome, children }) => (
+const Shell = ({ btn, onHome, children }: { btn: BtnConfig; onHome: () => void; children: ReactNode }) => (
   <div style={{ height: "100%", display: "flex", flexDirection: "column", background: B.navyDeep }}>
     {/* NAV */}
     <nav style={{
@@ -635,7 +648,7 @@ const Shell = ({ btn, onHome, children }) => (
       <img
         src="https://media4-duplicated-z3xl.bolt.host/logo.png"
         alt="Logo" style={{ height: 28 }}
-        onError={e => { e.target.style.display = "none"; }}
+        onError={(e) => { (e.target as HTMLElement).style.display = "none"; }}
       />
       <button onClick={onHome} style={{
         padding: "10px 24px", borderRadius: 12,
@@ -662,7 +675,7 @@ const Shell = ({ btn, onHome, children }) => (
       <img
         src="https://media4-duplicated-z3xl.bolt.host/logo.png"
         alt="Unikalo" style={{ height: 18, opacity: 0.25 }}
-        onError={e => { e.target.style.display = "none"; }}
+        onError={(e) => { (e.target as HTMLElement).style.display = "none"; }}
       />
       <Strip h={10} style={{ width: 160, borderRadius: 5, overflow: "hidden" }} />
     </div>
@@ -672,7 +685,7 @@ const Shell = ({ btn, onHome, children }) => (
 // ═════════════════════════════════════════════════════════════
 // PAGE : Site Web → iframe
 // ═════════════════════════════════════════════════════════════
-const SiteWeb = ({ url }) => {
+const SiteWeb = ({ url }: { url: string }) => {
   const [loading, setLoading] = useState(true);
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", background: B.navyDeep }}>
@@ -826,8 +839,8 @@ const Partenaires = () => {
                   src={p.logo}
                   alt={p.name}
                   style={{ width: 56, height: 56, objectFit: "contain" }}
-                  onError={e => {
-                    e.target.outerHTML = `<div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,${B.navy},#1A4B8C);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:20px;font-family:Outfit,sans-serif">${p.name.charAt(0)}</div>`;
+                  onError={(e) => {
+                    (e.target as HTMLElement).outerHTML = `<div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,${B.navy},#1A4B8C);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:20px;font-family:Outfit,sans-serif">${p.name.charAt(0)}</div>`;
                   }}
                 />
               </div>
@@ -863,7 +876,7 @@ const Partenaires = () => {
 // ═════════════════════════════════════════════════════════════
 export default function App() {
   const [screen, setScreen] = useState("attract");
-  const [content, setContent] = useState(null);
+  const [content, setContent] = useState<BtnConfig | null>(null);
 
   // Auto-return attract après 2min d'inactivité
   useEffect(() => {
@@ -873,12 +886,12 @@ export default function App() {
   }, [screen, content]);
 
   const goHome = useCallback(() => { setContent(null); setScreen("home"); }, []);
-  const open = useCallback((btn) => { setContent(btn); setScreen("content"); }, []);
+  const open = useCallback((btn: BtnConfig) => { setContent(btn); setScreen("content"); }, []);
 
   const renderContent = () => {
     if (!content) return null;
     switch (content.type) {
-      case "web": return <SiteWeb url={content.url} />;
+      case "web": return <SiteWeb url={content.url || ""} />;
       case "pdf": return <SelectionMois />;
       case "partners": return <Partenaires />;
       default: return null;
