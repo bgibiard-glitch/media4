@@ -4,7 +4,7 @@ import type { ReactNode, CSSProperties } from "react";
 // ═══════════════════════════════════════════════════════════
 // UNIKALO TOTEM — V3 EXPLOSIVE
 // Full video · Glass tabs · Maximum impact
-// 🚀 Propulsé par MEDIA4
+// Propulsé par MEDIA4
 // ═══════════════════════════════════════════════════════════
 
 const B = {
@@ -31,7 +31,7 @@ const PARTNERS = [
 
 const VIDEO_CONFIG = {
   embedUrl: "https://app.videas.fr/embed/87d4e0e9-ff7a-4c9c-8169-afae035aaaf9",
-  mp4Url: "",
+  mp4Url: "https://media4-xues.vercel.app/fondecran.mp4",
 };
 
 const PDF_URL = "https://media4-duplicated-z3xl.bolt.host/pdf.pdf";
@@ -225,7 +225,7 @@ const BTNS: BtnConfig[] = [
     accent: B.red,
     gradient: `linear-gradient(135deg, ${B.red}, #FF2D55)`,
     type: "pdf",
-    bgImage: "https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=800&q=80",
+    bgImage: "https://media4-xues.vercel.app/laselection.png",
   },
   {
     id: "site",
@@ -236,7 +236,7 @@ const BTNS: BtnConfig[] = [
     gradient: "linear-gradient(135deg, #4A7FB5, #6BA3D6)",
     type: "web",
     url: "https://nuances-unikalo.com",
-    bgImage: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&q=80",
+    bgImage: "https://media4-xues.vercel.app/siteUNIKALO.png",
   },
   {
     id: "partenaires",
@@ -417,7 +417,7 @@ const Home = ({ onSelect }: { onSelect: (btn: BtnConfig) => void }) => {
         animation: "fadeIn 0.6s 0.9s ease both",
       }}>
         <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: 3, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace" }}>
-          🚀 Propulsé par <strong style={{ color: "rgba(255,255,255,0.5)" }}>MEDIA4</strong>
+          Propulsé par <strong style={{ color: "rgba(255,255,255,0.5)" }}>MEDIA4 🚀</strong>
         </span>
         <img
           src={LOGO_URL}
@@ -494,7 +494,7 @@ const Shell = ({ btn, onHome, children }: { btn: BtnConfig; onHome: () => void; 
       padding: "10px 36px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0,
     }}>
       <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: 3, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace" }}>
-        🚀 Propulsé par <strong style={{ color: "rgba(255,255,255,0.4)" }}>MEDIA4</strong>
+        Propulsé par <strong style={{ color: "rgba(255,255,255,0.4)" }}>MEDIA4 🚀</strong>
       </span>
       <img
         src={LOGO_URL}
