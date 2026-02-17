@@ -26,12 +26,11 @@ const COLORS = [
 ];
 
 const PARTNERS = [
-  { name: "Leroy Merlin", logo: "https://logo.clearbit.com/leroymerlin.fr", url: "https://leroymerlin.fr" },
-  { name: "Saint-Gobain", logo: "https://logo.clearbit.com/saint-gobain.com", url: "https://saint-gobain.com" },
-  { name: "Tollens", logo: "https://logo.clearbit.com/tollens.com", url: "https://tollens.com" },
-  { name: "Seigneurie", logo: "https://logo.clearbit.com/seigneurie.com", url: "https://seigneurie.com" },
-  { name: "Zolpan", logo: "https://logo.clearbit.com/zolpan.fr", url: "https://zolpan.fr" },
-  { name: "PPG", logo: "https://logo.clearbit.com/ppg.com", url: "https://ppg.com" },
+  { name: "Partenaire : 1", logo: "https://media4-xues.vercel.app/partenaires/1.png", url: "https://leroymerlin.fr" },
+  { name: "Partenaire : 2", logo: "https://media4-xues.vercel.app/partenaires/2.png", url: "https://saint-gobain.com" },
+  { name: "Partenaire : 3", logo: "https://media4-xues.vercel.app/partenaires/3.png", url: "https://tollens.com" },
+  { name: "Partenaire : 4", logo: "https://media4-xues.vercel.app/partenaires/4.png", url: "https://seigneurie.com" },
+  { name: "Partenaire : 5", logo: "https://media4-xues.vercel.app/partenaires/5.png", url: "https://zolpan.fr" },
 ];
 
 // ─── FONTS & GLOBAL STYLES ───────────────────────────────
@@ -130,7 +129,7 @@ const Icon = ({ name, size = 24, color = "currentColor" }: { name: string; size?
 // ────────────────────────────────────────────────────
 const VIDEO_CONFIG = {
   // URL embed Videas (pour iframe)
-  embedUrl: "https://app.videas.fr/embed/87d4e0e9-ff7a-4c9c-8169-afae035aaaf9",
+  embedUrl: "https://media4-xues.vercel.app/fondecran.mp4",
   // URL directe MP4 (si tu as le lien direct, mets-le ici — meilleure performance)
   // Pour obtenir l'URL directe : dans Videas, clic droit sur la vidéo > "Copier l'adresse de la vidéo"
   mp4Url: "",
