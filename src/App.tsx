@@ -198,7 +198,7 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
           }}>
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", animation: "blink 2s infinite", flexShrink: 0 }} />
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: 3, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", fontWeight: 500 }}>
-              Totem Interactif · Bordeaux
+              Totem Interactif · Ivry sur seine - 94
             </span>
           </div>
 
@@ -429,7 +429,7 @@ const Home = ({ onSelect, onBack }: { onSelect: (btn: BtnConfig) => void; onBack
           />
           <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.12)" }} />
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Magasin Bordeaux</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Magasin Ivry sur Seine - 94</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
               <span style={{ width: 6, height: 6, borderRadius: 3, background: "#22c55e" }} />
               Totem Entrée · En service
