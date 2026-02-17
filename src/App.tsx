@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import type { ReactNode, CSSProperties } from "react";
 
 // ═══════════════════════════════════════════════════════════
-// UNIKALO TOTEM — V2 CINÉMATIQUE
-// 3 modules : Site Web · Sélection du Mois · Partenaires
+// UNIKALO TOTEM — V3 CORRIGÉ
+// Video native plein écran + partenaires centrés + retour attract
 // ═══════════════════════════════════════════════════════════
 
 const B = {
@@ -26,11 +26,11 @@ const COLORS = [
 ];
 
 const PARTNERS = [
-  { name: "Partenaire : 1", logo: "https://media4-xues.vercel.app/partenaires/1.png", url: "https://leroymerlin.fr" },
-  { name: "Partenaire : 2", logo: "https://media4-xues.vercel.app/partenaires/2.png", url: "https://saint-gobain.com" },
-  { name: "Partenaire : 3", logo: "https://media4-xues.vercel.app/partenaires/3.png", url: "https://tollens.com" },
-  { name: "Partenaire : 4", logo: "https://media4-xues.vercel.app/partenaires/4.png", url: "https://seigneurie.com" },
-  { name: "Partenaire : 5", logo: "https://media4-xues.vercel.app/partenaires/5.png", url: "https://zolpan.fr" },
+  { name: "Partenaire 1", logo: "https://media4-xues.vercel.app/partenaires/1.png" },
+  { name: "Partenaire 2", logo: "https://media4-xues.vercel.app/partenaires/2.png" },
+  { name: "Partenaire 3", logo: "https://media4-xues.vercel.app/partenaires/3.png" },
+  { name: "Partenaire 4", logo: "https://media4-xues.vercel.app/partenaires/4.png" },
+  { name: "Partenaire 5", logo: "https://media4-xues.vercel.app/partenaires/5.png" },
 ];
 
 // ─── FONTS & GLOBAL STYLES ───────────────────────────────
@@ -39,7 +39,7 @@ const GlobalStyles = () => (
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body, #root { width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0; }
-    body { font-family: 'Outfit', sans-serif; overflow: hidden; background: #000; }
+    body { font-family: 'Outfit', sans-serif; overflow: hidden; background: #000; -webkit-user-select: none; user-select: none; }
 
     @keyframes fadeUp { from { opacity:0; transform:translateY(24px) } to { opacity:1; transform:translateY(0) } }
     @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
@@ -48,28 +48,10 @@ const GlobalStyles = () => (
     @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.03)} }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
     @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
-    @keyframes gradientShift {
-      0% { background-position: 0% 50% }
-      50% { background-position: 100% 50% }
-      100% { background-position: 0% 50% }
-    }
-    @keyframes colorFlow {
-      0% { filter: hue-rotate(0deg) }
-      100% { filter: hue-rotate(360deg) }
-    }
-    @keyframes float {
-      0%,100% { transform: translateY(0px) }
-      50% { transform: translateY(-8px) }
-    }
-    @keyframes videoZoom {
-      0% { transform: scale(1) }
-      100% { transform: scale(1.08) }
-    }
+    @keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
 
-    .totem-btn {
-      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
-    }
+    .totem-btn { transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
     .totem-btn:hover {
       transform: translateY(-4px) scale(1.01);
       background: rgba(255,255,255,0.08) !important;
@@ -78,9 +60,7 @@ const GlobalStyles = () => (
     }
     .totem-btn:active { transform: translateY(-1px) scale(0.99); }
 
-    .partner-card {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+    .partner-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     .partner-card:hover {
       transform: translateY(-6px) scale(1.04);
       background: rgba(255,255,255,0.08) !important;
@@ -88,7 +68,6 @@ const GlobalStyles = () => (
       box-shadow: 0 16px 48px rgba(0,0,0,0.3) !important;
     }
 
-    /* Scrollbar */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #C8102E40; border-radius: 4px; }
@@ -120,24 +99,17 @@ const Icon = ({ name, size = 24, color = "currentColor" }: { name: string; size?
   );
 };
 
-// ═════════════════════════════════════════════════════════════
-// 1. ATTRACT SCREEN — Fond vidéo cinématique
-// ═════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// 1. ATTRACT SCREEN — Fond vidéo NATIVE plein écran
+// ═══════════════════════════════════════════════════════════
 
 // ────────────────────────────────────────────────────
-// 🎬 CONFIGURATION VIDÉO — Modifier ici l'URL vidéo
+// 🎬 URL DIRECTE DU MP4 — Balise <video> native
 // ────────────────────────────────────────────────────
-const VIDEO_CONFIG = {
-  // URL embed Videas (pour iframe)
-  embedUrl: "https://media4-xues.vercel.app/fondecran.mp4",
-  // URL directe MP4 (si tu as le lien direct, mets-le ici — meilleure performance)
-  // Pour obtenir l'URL directe : dans Videas, clic droit sur la vidéo > "Copier l'adresse de la vidéo"
-  mp4Url: "",
-};
+const VIDEO_URL = "https://media4-xues.vercel.app/fondecran.mp4";
 
 const Attract = ({ onTouch }: { onTouch: () => void }) => {
   const [line, setLine] = useState(0);
-  const [videoLoaded, setVideoLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const taglines = [
     "Fabricant de peintures depuis 1936.",
@@ -150,7 +122,6 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
     return () => clearInterval(t);
   }, []);
 
-  // Tente de jouer la vidéo au mount
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.play().catch(() => {});
@@ -160,7 +131,7 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
   return (
     <div onClick={onTouch} style={{ position: "absolute", inset: 0, cursor: "pointer", overflow: "hidden", background: "#000" }}>
 
-      {/* ═══ LAYER 0 — Animated gradient background (toujours visible derrière) ═══ */}
+      {/* LAYER 0 — Gradient fallback (visible pendant le chargement vidéo) */}
       <div style={{
         position: "absolute", inset: 0, zIndex: 0,
         background: `linear-gradient(135deg, ${B.navyDeep} 0%, #0A1628 25%, #162544 50%, #1B2A4A 75%, ${B.navyDeep} 100%)`,
@@ -168,78 +139,31 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
         animation: "gradientShift 20s ease infinite",
       }} />
 
-      {/* Animated color blobs — subtils, derrière la vidéo */}
-      <div style={{ position: "absolute", inset: 0, zIndex: 0, overflow: "hidden", opacity: 0.4 }}>
-        {[
-          { c: "#C8102E", x: "10%", y: "20%", s: 300, d: 8 },
-          { c: "#4A7FB5", x: "75%", y: "15%", s: 250, d: 10 },
-          { c: "#E8C840", x: "30%", y: "75%", s: 220, d: 7 },
-        ].map((b, i) => (
-          <div key={i} style={{
-            position: "absolute",
-            width: b.s, height: b.s,
-            borderRadius: "50%",
-            background: `radial-gradient(circle, ${b.c}30, transparent 70%)`,
-            left: b.x, top: b.y,
-            transform: "translate(-50%, -50%)",
-            animation: `float ${b.d}s ease-in-out ${i * 0.7}s infinite`,
-            filter: "blur(40px)",
-          }} />
-        ))}
-      </div>
+      {/* LAYER 1 — VIDEO NATIVE <video> PLEIN ÉCRAN — PAS d'iframe ! */}
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{
+          position: "absolute",
+          top: 0, left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: 1,
+        }}
+      >
+        <source src={VIDEO_URL} type="video/mp4" />
+      </video>
 
-      {/* ═══ LAYER 1 — VIDEO (mp4 direct OU iframe embed) ═══ */}
-      {VIDEO_CONFIG.mp4Url ? (
-        <video
-          ref={videoRef}
-          autoPlay
-          muted
-          loop
-          playsInline
-          onCanPlay={() => setVideoLoaded(true)}
-          style={{
-            position: "absolute", inset: 0, zIndex: 1,
-            width: "100%", height: "100%",
-            objectFit: "cover",
-            opacity: videoLoaded ? 1 : 0,
-            transition: "opacity 1.5s ease",
-          }}
-        >
-          <source src={VIDEO_CONFIG.mp4Url} type="video/mp4" />
-        </video>
-      ) : (
-        <div style={{
-          position: "absolute", inset: 0, zIndex: 1,
-          overflow: "hidden",
-        }}>
-          <iframe
-            src={`${VIDEO_CONFIG.embedUrl}?autoplay=1&muted=1&loop=1&controls=0&title=0&byline=0&background=1`}
-            allow="autoplay; fullscreen; encrypted-media"
-            allowFullScreen
-            frameBorder="0"
-            title="Background video"
-            style={{
-              position: "absolute",
-              top: "50%", left: "50%",
-              width: "177.78vh", height: "100vh",
-              minWidth: "100%", minHeight: "56.25vw",
-              transform: "translate(-50%, -50%)",
-              border: "none",
-              pointerEvents: "none",
-              opacity: 1,
-            }}
-          />
-        </div>
-      )}
-
-      {/* ═══ NO OVERLAY — Vidéo visible à 100% ═══ */}
-
-      {/* ═══ Color strip TOP ═══ */}
+      {/* Color strip TOP */}
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10 }}>
         <Strip h={5} />
       </div>
 
-      {/* ═══ MAIN CONTENT — dans un bloc sombre semi-transparent ═══ */}
+      {/* MAIN CONTENT — dark glass box par-dessus la vidéo */}
       <div style={{
         position: "relative", zIndex: 10,
         height: "100%",
@@ -248,7 +172,6 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
         textAlign: "center",
         padding: "60px 40px 40px",
       }}>
-        {/* ── DARK GLASS BOX ── */}
         <div style={{
           background: "rgba(0, 15, 40, 0.50)",
           backdropFilter: "blur(20px)",
@@ -279,15 +202,13 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
             </span>
           </div>
 
-          {/* Logo UNIKALO */}
+          {/* Logo */}
           <div style={{ marginBottom: 36, animation: "fadeUp 0.8s 0.4s ease both", opacity: 0 }}>
             <img
               src="https://media4-duplicated-z3xl.bolt.host/logo.png"
               alt="Unikalo"
               style={{ height: 56, display: "block" }}
-              onError={(e) => {
-                (e.target as HTMLElement).outerHTML = `<span style="font-size:44px;font-weight:900;letter-spacing:8px;color:#fff;font-family:Outfit,sans-serif">UNIKALO</span>`;
-              }}
+              onError={(e) => { (e.target as HTMLElement).outerHTML = `<span style="font-size:44px;font-weight:900;letter-spacing:8px;color:#fff;font-family:Outfit,sans-serif">UNIKALO</span>`; }}
             />
           </div>
 
@@ -297,8 +218,7 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
             letterSpacing: -3,
             animation: "fadeUp 0.8s 0.5s ease both", opacity: 0,
           }}>
-            La couleur,
-            <br />
+            La couleur,<br />
             <span style={{
               background: `linear-gradient(135deg, ${B.red}, #FF4D6A, ${B.red})`,
               WebkitBackgroundClip: "text",
@@ -352,7 +272,7 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
         </div>
       </div>
 
-      {/* ── BOTTOM BAR — glass cohérent ── */}
+      {/* BOTTOM BAR */}
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 10 }}>
         <div style={{
           padding: "14px 48px",
@@ -366,7 +286,7 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
           </span>
           <img
             src="https://media4-duplicated-z3xl.bolt.host/logo.png"
-            alt="Unikalo" style={{ height: 18, opacity: 0.3 }}
+            alt="Logo" style={{ height: 18, opacity: 0.3 }}
             onError={(e) => { (e.target as HTMLElement).style.display = "none"; }}
           />
           <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", fontFamily: "'JetBrains Mono', monospace" }}>
@@ -379,9 +299,9 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
   );
 };
 
-// ═════════════════════════════════════════════════════════════
-// 2. HOME — 3 boutons uniquement
-// ═════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// 2. HOME — 3 boutons + bouton retour vers attract
+// ═══════════════════════════════════════════════════════════
 interface BtnConfig {
   id: string;
   label: string;
@@ -428,14 +348,14 @@ const BTNS: BtnConfig[] = [
   },
 ];
 
-const Home = ({ onSelect }: { onSelect: (btn: BtnConfig) => void }) => {
+const Home = ({ onSelect, onBack }: { onSelect: (btn: BtnConfig) => void; onBack: () => void }) => {
   const [vis, setVis] = useState(false);
   useEffect(() => { requestAnimationFrame(() => setVis(true)); }, []);
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", background: B.navyDeep, position: "relative", overflow: "hidden" }}>
 
-      {/* Background gradient + orbs (même ambiance que l'attract) */}
+      {/* Background */}
       <div style={{
         position: "absolute", inset: 0, zIndex: 0,
         background: `linear-gradient(160deg, ${B.navyDeep} 0%, #0D1F3C 40%, #162544 70%, #0A1628 100%)`,
@@ -455,7 +375,7 @@ const Home = ({ onSelect }: { onSelect: (btn: BtnConfig) => void }) => {
         }} />
       ))}
 
-      {/* HEADER */}
+      {/* HEADER — avec bouton retour vers l'écran d'accueil (attract) */}
       <header style={{
         position: "relative", zIndex: 10,
         background: "rgba(0,15,40,0.5)",
@@ -464,7 +384,17 @@ const Home = ({ onSelect }: { onSelect: (btn: BtnConfig) => void }) => {
         padding: "0 48px", display: "flex", alignItems: "center", justifyContent: "space-between",
         height: 72, flexShrink: 0,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          {/* ← Bouton retour vers attract */}
+          <button onClick={onBack} style={{
+            width: 42, height: 42, borderRadius: 12,
+            border: "1px solid rgba(255,255,255,0.1)",
+            background: "rgba(255,255,255,0.05)",
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            transition: "all 0.2s ease",
+          }}>
+            <Icon name="back" size={18} color="rgba(255,255,255,0.6)" />
+          </button>
           <img
             src="https://media4-duplicated-z3xl.bolt.host/logo.png"
             alt="Unikalo" style={{ height: 34 }}
@@ -511,7 +441,7 @@ const Home = ({ onSelect }: { onSelect: (btn: BtnConfig) => void }) => {
         </p>
       </div>
 
-      {/* 3 BOUTONS IMPOSANTS avec images de fond */}
+      {/* 3 BOUTONS */}
       <div style={{
         position: "relative", zIndex: 10,
         flex: 1, padding: "24px 48px 24px",
@@ -532,54 +462,24 @@ const Home = ({ onSelect }: { onSelect: (btn: BtnConfig) => void }) => {
               borderRadius: 24,
               background: "transparent",
               border: "1px solid rgba(255,255,255,0.1)",
-              textAlign: "left",
+              textAlign: "left" as const,
               boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-              position: "relative", overflow: "hidden",
+              position: "relative" as const, overflow: "hidden" as const,
               opacity: vis ? 1 : 0,
               transform: vis ? "translateY(0)" : "translateY(30px)",
               transition: `opacity 0.6s ${0.15 + i * 0.12}s ease, transform 0.6s ${0.15 + i * 0.12}s cubic-bezier(0.4, 0, 0.2, 1)`,
             }}
           >
-            {/* Background image */}
-            <div style={{
-              position: "absolute", inset: 0,
-              backgroundImage: `url(${btn.bgImage})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              zIndex: 0,
-            }} />
-
-            {/* Dark overlay on image */}
-            <div style={{
-              position: "absolute", inset: 0, zIndex: 1,
-              background: `linear-gradient(135deg, rgba(0,15,40,0.75) 0%, rgba(0,15,40,0.55) 50%, ${btn.accent}30 100%)`,
-            }} />
-
-            {/* Gradient accent left bar */}
-            <div style={{
-              position: "absolute", top: 0, left: 0, bottom: 0, width: 5, zIndex: 3,
-              background: btn.gradient, borderRadius: "24px 0 0 24px",
-            }} />
-
-            {/* Icon — grand et imposant */}
-            <div style={{
-              position: "relative", zIndex: 2,
-              width: 80, height: 80, borderRadius: 20, flexShrink: 0,
-              marginLeft: 36,
-              background: btn.gradient,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: `0 12px 32px ${btn.accent}40`,
-            }}>
+            <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${btn.bgImage})`, backgroundSize: "cover", backgroundPosition: "center", zIndex: 0 }} />
+            <div style={{ position: "absolute", inset: 0, zIndex: 1, background: `linear-gradient(135deg, rgba(0,15,40,0.75) 0%, rgba(0,15,40,0.55) 50%, ${btn.accent}30 100%)` }} />
+            <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 5, zIndex: 3, background: btn.gradient, borderRadius: "24px 0 0 24px" }} />
+            <div style={{ position: "relative", zIndex: 2, width: 80, height: 80, borderRadius: 20, flexShrink: 0, marginLeft: 36, background: btn.gradient, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 12px 32px ${btn.accent}40` }}>
               <Icon name={btn.icon} size={36} color="#fff" />
             </div>
-
-            {/* Text */}
             <div style={{ position: "relative", zIndex: 2, flex: 1 }}>
               <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", letterSpacing: -0.5, textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>{btn.label}</div>
               <div style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginTop: 6, fontWeight: 400 }}>{btn.sub}</div>
             </div>
-
-            {/* Arrow */}
             <div style={{ position: "relative", zIndex: 2, marginRight: 36, opacity: 0.35 }}>
               <Icon name="arrow" size={24} color="#fff" />
             </div>
@@ -587,7 +487,7 @@ const Home = ({ onSelect }: { onSelect: (btn: BtnConfig) => void }) => {
         ))}
       </div>
 
-      {/* FOOTER — cohérent avec attract */}
+      {/* FOOTER */}
       <footer style={{
         position: "relative", zIndex: 10,
         background: "rgba(0,15,40,0.4)",
@@ -600,11 +500,7 @@ const Home = ({ onSelect }: { onSelect: (btn: BtnConfig) => void }) => {
         <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: 3, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace" }}>
           🚀 Propulsé par <strong style={{ color: "rgba(255,255,255,0.4)" }}>MEDIA4</strong>
         </span>
-        <img
-          src="https://media4-duplicated-z3xl.bolt.host/logo.png"
-          alt="Unikalo" style={{ height: 18, opacity: 0.25 }}
-          onError={(e) => { (e.target as HTMLElement).style.display = "none"; }}
-        />
+        <img src="https://media4-duplicated-z3xl.bolt.host/logo.png" alt="Logo" style={{ height: 18, opacity: 0.25 }} onError={(e) => { (e.target as HTMLElement).style.display = "none"; }} />
         <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", fontFamily: "'JetBrains Mono', monospace" }}>
           {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
         </span>
@@ -614,22 +510,19 @@ const Home = ({ onSelect }: { onSelect: (btn: BtnConfig) => void }) => {
   );
 };
 
-// ═════════════════════════════════════════════════════════════
-// SHELL — Layout pour pages de contenu
-// ═════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// SHELL
+// ═══════════════════════════════════════════════════════════
 const Shell = ({ btn, onHome, children }: { btn: BtnConfig; onHome: () => void; children: ReactNode }) => (
   <div style={{ height: "100%", display: "flex", flexDirection: "column", background: B.navyDeep }}>
-    {/* NAV */}
     <nav style={{
-      background: "rgba(0,15,40,0.6)",
-      backdropFilter: "blur(16px)",
+      background: "rgba(0,15,40,0.6)", backdropFilter: "blur(16px)",
       borderBottom: "1px solid rgba(255,255,255,0.08)",
       padding: "0 36px", display: "flex", alignItems: "center", gap: 16, height: 64, flexShrink: 0,
     }}>
       <button onClick={onHome} style={{
         width: 42, height: 42, borderRadius: 12,
-        border: "1px solid rgba(255,255,255,0.1)",
-        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)",
         cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
       }}>
         <Icon name="back" size={18} color="rgba(255,255,255,0.6)" />
@@ -644,18 +537,11 @@ const Shell = ({ btn, onHome, children }: { btn: BtnConfig; onHome: () => void; 
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{btn.sub}</div>
         </div>
       </div>
-      <img
-        src="https://media4-duplicated-z3xl.bolt.host/logo.png"
-        alt="Logo" style={{ height: 28 }}
-        onError={(e) => { (e.target as HTMLElement).style.display = "none"; }}
-      />
+      <img src="https://media4-duplicated-z3xl.bolt.host/logo.png" alt="Logo" style={{ height: 28 }} onError={(e) => { (e.target as HTMLElement).style.display = "none"; }} />
       <button onClick={onHome} style={{
-        padding: "10px 24px", borderRadius: 12,
-        border: "none",
-        background: B.red,
-        cursor: "pointer", color: "#fff", fontSize: 14, fontWeight: 700,
-        display: "flex", alignItems: "center", gap: 8,
-        boxShadow: `0 4px 16px ${B.red}40`,
+        padding: "10px 24px", borderRadius: 12, border: "none",
+        background: B.red, cursor: "pointer", color: "#fff", fontSize: 14, fontWeight: 700,
+        display: "flex", alignItems: "center", gap: 8, boxShadow: `0 4px 16px ${B.red}40`,
       }}>
         <Icon name="home" size={18} color="#fff" /> Accueil
       </button>
@@ -663,27 +549,22 @@ const Shell = ({ btn, onHome, children }: { btn: BtnConfig; onHome: () => void; 
     <div style={{ height: 3, background: btn.gradient, flexShrink: 0 }} />
     <div style={{ flex: 1, overflow: "hidden" }}>{children}</div>
     <div style={{
-      background: "rgba(0,15,40,0.4)",
-      backdropFilter: "blur(12px)",
+      background: "rgba(0,15,40,0.4)", backdropFilter: "blur(12px)",
       borderTop: "1px solid rgba(255,255,255,0.06)",
       padding: "10px 36px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0,
     }}>
       <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: 3, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace" }}>
         🚀 Propulsé par <strong style={{ color: "rgba(255,255,255,0.4)" }}>MEDIA4</strong>
       </span>
-      <img
-        src="https://media4-duplicated-z3xl.bolt.host/logo.png"
-        alt="Unikalo" style={{ height: 18, opacity: 0.25 }}
-        onError={(e) => { (e.target as HTMLElement).style.display = "none"; }}
-      />
+      <img src="https://media4-duplicated-z3xl.bolt.host/logo.png" alt="Logo" style={{ height: 18, opacity: 0.25 }} onError={(e) => { (e.target as HTMLElement).style.display = "none"; }} />
       <Strip h={10} style={{ width: 160, borderRadius: 5, overflow: "hidden" }} />
     </div>
   </div>
 );
 
-// ═════════════════════════════════════════════════════════════
-// PAGE : Site Web → iframe
-// ═════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// PAGES
+// ═══════════════════════════════════════════════════════════
 const SiteWeb = ({ url }: { url: string }) => {
   const [loading, setLoading] = useState(true);
   return (
@@ -700,10 +581,7 @@ const SiteWeb = ({ url }: { url: string }) => {
             <div style={{ textAlign: "center" }}>
               <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 20 }}>
                 {COLORS.slice(0, 6).map((c, i) => (
-                  <div key={i} style={{
-                    width: 12, height: 12, borderRadius: 6, background: c,
-                    animation: `float 1s ${i * 0.15}s ease-in-out infinite`,
-                  }} />
+                  <div key={i} style={{ width: 12, height: 12, borderRadius: 6, background: c, animation: `float 1s ${i * 0.15}s ease-in-out infinite` }} />
                 ))}
               </div>
               <div style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>Chargement…</div>
@@ -716,67 +594,40 @@ const SiteWeb = ({ url }: { url: string }) => {
   );
 };
 
-// ═════════════════════════════════════════════════════════════
-// PAGE : Sélection du Mois → Visionneuse PDF
-// ═════════════════════════════════════════════════════════════
-const SelectionMois = () => {
-  const PDF_URL = "https://media4-duplicated-z3xl.bolt.host/pdf.pdf";
-
-  return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: B.navyDeep }}>
-      {/* Toolbar */}
-      <div style={{
-        padding: "14px 32px", background: "rgba(0,15,40,0.5)", borderBottom: "1px solid rgba(255,255,255,0.08)",
-        display: "flex", alignItems: "center", gap: 16, flexShrink: 0,
-      }}>
-        <div style={{
-          padding: "6px 16px", borderRadius: 8,
-          background: `${B.red}25`, color: B.red,
-          fontSize: 12, fontWeight: 700, letterSpacing: 1,
-          textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace",
-        }}>
-          PDF
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Sélection du Mois — {new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>Nos produits coup de cœur du moment</div>
-        </div>
-      </div>
-
-      {/* PDF Viewer — plein écran */}
-      <div style={{ flex: 1, background: "#1a1a2e" }}>
-        <iframe
-          src={`${PDF_URL}#toolbar=1&navpanes=0&view=FitH`}
-          title="Sélection du mois"
-          style={{ width: "100%", height: "100%", border: "none" }}
-        />
+const SelectionMois = () => (
+  <div style={{ height: "100%", display: "flex", flexDirection: "column", background: B.navyDeep }}>
+    <div style={{ padding: "14px 32px", background: "rgba(0,15,40,0.5)", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
+      <div style={{ padding: "6px 16px", borderRadius: 8, background: `${B.red}25`, color: B.red, fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace" }}>PDF</div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Sélection du Mois — {new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}</div>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>Nos produits coup de cœur du moment</div>
       </div>
     </div>
-  );
-};
+    <div style={{ flex: 1, background: "#1a1a2e" }}>
+      <iframe src="https://media4-duplicated-z3xl.bolt.host/pdf.pdf#toolbar=1&navpanes=0&view=FitH" title="PDF" style={{ width: "100%", height: "100%", border: "none" }} />
+    </div>
+  </div>
+);
 
-// ═════════════════════════════════════════════════════════════
-// PAGE : Partenaires du Jour
-// ═════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// PARTENAIRES — Toutes les cartes de même taille, centrées
+// ═══════════════════════════════════════════════════════════
 const Partenaires = () => {
   const [vis, setVis] = useState(false);
   useEffect(() => { requestAnimationFrame(() => setVis(true)); }, []);
 
   return (
     <div style={{ height: "100%", overflow: "auto", background: B.navyDeep }}>
-      {/* Hero banner */}
+      {/* Hero */}
       <div style={{
         background: `linear-gradient(135deg, ${B.navy} 0%, #0D1F3C 100%)`,
         padding: "48px 48px 52px", position: "relative", overflow: "hidden",
       }}>
-        {/* Orbs */}
         {COLORS.slice(0, 4).map((c, i) => (
           <div key={i} style={{
-            position: "absolute",
-            width: 200, height: 200, borderRadius: "50%",
+            position: "absolute", width: 200, height: 200, borderRadius: "50%",
             background: `radial-gradient(circle, ${c}20, transparent 70%)`,
-            top: -40 + i * 30, right: -20 + i * 80,
-            filter: "blur(30px)",
+            top: -40 + i * 30, right: -20 + i * 80, filter: "blur(30px)",
           }} />
         ))}
         <div style={{ position: "relative", zIndex: 2 }}>
@@ -784,28 +635,24 @@ const Partenaires = () => {
             display: "inline-block", padding: "5px 14px", borderRadius: 6,
             background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)",
             fontSize: 11, color: "rgba(255,255,255,0.5)", letterSpacing: 2, textTransform: "uppercase",
-            fontFamily: "'JetBrains Mono', monospace", fontWeight: 500,
-            marginBottom: 16,
+            fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, marginBottom: 16,
           }}>
             {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
           </div>
-          <h2 style={{ fontSize: 34, fontWeight: 900, color: "#fff", letterSpacing: -0.5, margin: 0 }}>
-            Nos Partenaires
-          </h2>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", marginTop: 8, fontWeight: 400 }}>
-            L'excellence au service de vos projets
-          </p>
+          <h2 style={{ fontSize: 34, fontWeight: 900, color: "#fff", letterSpacing: -0.5, margin: 0 }}>Nos Partenaires</h2>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", marginTop: 8, fontWeight: 400 }}>L'excellence au service de vos projets</p>
         </div>
       </div>
       <Strip h={3} />
 
-      {/* Grid partenaires */}
-      <div style={{ padding: "36px 48px" }}>
+      {/* Grille flex centrée — toutes les cartes identiques */}
+      <div style={{ padding: "40px 48px" }}>
         <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 20,
-          maxWidth: 840,
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: 24,
+          maxWidth: 900,
           margin: "0 auto",
         }}>
           {PARTNERS.map((p, i) => (
@@ -813,11 +660,12 @@ const Partenaires = () => {
               key={i}
               className="partner-card"
               style={{
+                width: 200,
                 background: "rgba(255,255,255,0.04)",
                 borderRadius: 20,
                 border: "1px solid rgba(255,255,255,0.08)",
                 backdropFilter: "blur(8px)",
-                padding: "36px 24px",
+                padding: "32px 20px",
                 display: "flex", flexDirection: "column",
                 alignItems: "center", justifyContent: "center",
                 gap: 16,
@@ -825,27 +673,26 @@ const Partenaires = () => {
                 opacity: vis ? 1 : 0,
                 transform: vis ? "translateY(0)" : "translateY(20px)",
                 transition: `all 0.5s ${0.1 + i * 0.08}s cubic-bezier(0.4, 0, 0.2, 1)`,
-                cursor: "default",
               }}
             >
               <div style={{
-                width: 80, height: 80, borderRadius: 16,
-                background: "rgba(255,255,255,0.9)",
+                width: 100, height: 100, borderRadius: 20,
+                background: "rgba(255,255,255,0.92)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                overflow: "hidden",
+                overflow: "hidden", flexShrink: 0,
               }}>
                 <img
                   src={p.logo}
                   alt={p.name}
-                  style={{ width: 56, height: 56, objectFit: "contain" }}
+                  style={{ width: 72, height: 72, objectFit: "contain" }}
                   onError={(e) => {
-                    (e.target as HTMLElement).outerHTML = `<div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,${B.navy},#1A4B8C);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:20px;font-family:Outfit,sans-serif">${p.name.charAt(0)}</div>`;
+                    (e.target as HTMLElement).outerHTML = `<div style="width:72px;height:72px;border-radius:14px;background:linear-gradient(135deg,${B.navy},#1A4B8C);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:24px;font-family:Outfit,sans-serif">${p.name.charAt(0)}</div>`;
                   }}
                 />
               </div>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>{p.name}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 3, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{p.name}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 4, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>
                   Partenaire officiel
                 </div>
               </div>
@@ -853,16 +700,14 @@ const Partenaires = () => {
           ))}
         </div>
 
-        {/* Bottom info */}
         <div style={{
           marginTop: 36, textAlign: "center",
           padding: "24px 32px", borderRadius: 16,
           background: "rgba(255,255,255,0.03)", border: "1px dashed rgba(255,255,255,0.1)",
         }}>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", lineHeight: 1.7 }}>
-            Vous souhaitez devenir partenaire Unikalo ?
-            <br />
-            <strong style={{ color: "rgba(255,255,255,0.7)" }}>Contactez-nous</strong> pour en savoir plus sur notre programme.
+            Vous souhaitez devenir partenaire Unikalo ?<br />
+            <strong style={{ color: "rgba(255,255,255,0.7)" }}>Contactez-nous</strong> pour en savoir plus.
           </p>
         </div>
       </div>
@@ -870,12 +715,23 @@ const Partenaires = () => {
   );
 };
 
-// ═════════════════════════════════════════════════════════════
-// MAIN APP
-// ═════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// MAIN APP — Auto-fullscreen + navigation complète
+// ═══════════════════════════════════════════════════════════
 export default function App() {
   const [screen, setScreen] = useState("attract");
   const [content, setContent] = useState<BtnConfig | null>(null);
+
+  // ⬛ AUTO-FULLSCREEN au premier clic/toucher
+  useEffect(() => {
+    const goFullscreen = () => {
+      const el = document.documentElement as any;
+      const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+      if (rfs) rfs.call(el).catch(() => {});
+    };
+    document.addEventListener("click", goFullscreen, { once: true });
+    return () => document.removeEventListener("click", goFullscreen);
+  }, []);
 
   // Auto-return attract après 2min d'inactivité
   useEffect(() => {
@@ -884,6 +740,7 @@ export default function App() {
     return () => clearTimeout(t);
   }, [screen, content]);
 
+  const goAttract = useCallback(() => { setContent(null); setScreen("attract"); }, []);
   const goHome = useCallback(() => { setContent(null); setScreen("home"); }, []);
   const open = useCallback((btn: BtnConfig) => { setContent(btn); setScreen("content"); }, []);
 
@@ -902,7 +759,7 @@ export default function App() {
       <GlobalStyles />
       <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden", background: "#000" }}>
         {screen === "attract" && <Attract onTouch={() => setScreen("home")} />}
-        {screen === "home" && <Home onSelect={open} />}
+        {screen === "home" && <Home onSelect={open} onBack={goAttract} />}
         {screen === "content" && content && (
           <Shell btn={content} onHome={goHome}>
             {renderContent()}
