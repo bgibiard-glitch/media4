@@ -21,12 +21,11 @@ const COLORS = [
 ];
 
 const PARTNERS = [
-  { name: "Leroy Merlin", logo: "https://logo.clearbit.com/leroymerlin.fr", url: "https://leroymerlin.fr" },
-  { name: "Saint-Gobain", logo: "https://logo.clearbit.com/saint-gobain.com", url: "https://saint-gobain.com" },
-  { name: "Tollens", logo: "https://logo.clearbit.com/tollens.com", url: "https://tollens.com" },
-  { name: "Seigneurie", logo: "https://logo.clearbit.com/seigneurie.com", url: "https://seigneurie.com" },
-  { name: "Zolpan", logo: "https://logo.clearbit.com/zolpan.fr", url: "https://zolpan.fr" },
-  { name: "PPG", logo: "https://logo.clearbit.com/ppg.com", url: "https://ppg.com" },
+  { name: "Chaux Tilia", logo: "https://logo.clearbit.com/chaux-tilia.fr", url: "https://www.chaux-tilia.fr/" },
+  { name: "Couleurs & Matières", logo: "https://logo.clearbit.com/couleurs-et-matieres.com", url: "https://www.couleurs-et-matieres.com/" },
+  { name: "Licef", logo: "https://logo.clearbit.com/licef.fr", url: "https://www.licef.fr/" },
+  { name: "Euromair", logo: "https://logo.clearbit.com/euromair.com", url: "https://www.euromair.com/" },
+  { name: "EF Factory", logo: "https://logo.clearbit.com/ef-factory.com", url: "https://ef-factory.com/fr/" },
 ];
 
 const VIDEO_CONFIG = {
@@ -322,7 +321,7 @@ const Home = ({ onSelect }: { onSelect: (btn: BtnConfig) => void }) => {
                 height: "calc((100vh - 400px) / 3)",
                 minHeight: 120, maxHeight: 170,
                 borderRadius: 24,
-                background: "rgba(0, 12, 35, 0.45)",
+                background: "rgba(0, 12, 35, 0.25)",
                 backdropFilter: "blur(24px)",
                 WebkitBackdropFilter: "blur(24px)",
                 border: "1px solid rgba(255,255,255,0.1)",
@@ -511,7 +510,17 @@ const Shell = ({ btn, onHome, children }: { btn: BtnConfig; onHome: () => void; 
 // ═════════════════════════════════════════════════════════════
 const SelectionMois = () => {
   const [vis, setVis] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setVis(true), 100); return () => clearTimeout(t); }, []);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setVis(true), 100);
+    setIsMobile(/Android|iPhone|iPad|iPod|webOS|BlackBerry/i.test(navigator.userAgent));
+    return () => clearTimeout(t);
+  }, []);
+
+  // Google Docs Viewer pour Android/mobile (iframe PDF non supporté)
+  const pdfViewerUrl = isMobile
+    ? `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(PDF_URL)}`
+    : `${PDF_URL}#toolbar=1&navpanes=0&view=FitH`;
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", background: "rgba(0,10,30,0.6)" }}>
@@ -574,9 +583,9 @@ const SelectionMois = () => {
           </div>
         </div>
       </div>
-      <div style={{ flex: 1, background: "#0d1117" }}>
+      <div style={{ flex: 1, background: "#0d1117", position: "relative" }}>
         <iframe
-          src={`${PDF_URL}#toolbar=1&navpanes=0&view=FitH`}
+          src={pdfViewerUrl}
           title="Sélection du mois"
           style={{ width: "100%", height: "100%", border: "none" }}
         />
@@ -670,16 +679,18 @@ const Partenaires = () => {
       </div>
       <Strip h={3} />
       <div style={{ padding: "36px 48px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, maxWidth: 840, margin: "0 auto" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 20, maxWidth: 840, margin: "0 auto", justifyContent: "center" }}>
           {PARTNERS.map((p, i) => (
-            <div key={i} className="partner-card" style={{
+            <a key={i} href={p.url} target="_blank" rel="noopener noreferrer" className="partner-card" style={{
               background: "rgba(255,255,255,0.04)", borderRadius: 20,
               border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(8px)",
               padding: "32px 24px", display: "flex", flexDirection: "column",
               alignItems: "center", justifyContent: "center", gap: 14,
               boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+              width: "calc(33.333% - 14px)", minWidth: 200,
               opacity: vis ? 1 : 0, transform: vis ? "translateY(0)" : "translateY(20px)",
-              transition: `all 0.5s ${0.1 + i * 0.08}s cubic-bezier(0.4, 0, 0.2, 1)`, cursor: "default",
+              transition: `all 0.5s ${0.1 + i * 0.08}s cubic-bezier(0.4, 0, 0.2, 1)`,
+              cursor: "pointer", textDecoration: "none",
             }}>
               <div style={{
                 width: 72, height: 72, borderRadius: 16, background: "rgba(255,255,255,0.9)",
@@ -695,7 +706,7 @@ const Partenaires = () => {
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{p.name}</div>
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 3, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>Partenaire officiel</div>
               </div>
-            </div>
+            </a>
           ))}
         </div>
         <div style={{
