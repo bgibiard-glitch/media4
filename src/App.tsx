@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import type { ReactNode, CSSProperties } from "react";
 
 // ═══════════════════════════════════════════════════════════
-// UNIKALO TOTEM — V3 CORRIGÉ
-// Video native plein écran + partenaires centrés + retour attract
+// UNIKALO TOTEM — V4 ✨ WAHOU EDITION
+// Vidéo unique préchargée · Ivry-sur-Seine · Effets premium
 // ═══════════════════════════════════════════════════════════
 
 const B = {
@@ -33,7 +33,9 @@ const PARTNERS = [
   { name: "Partenaire 5", logo: "https://media4-xues.vercel.app/partenaires/5.png" },
 ];
 
-// ─── FONTS & GLOBAL STYLES ───────────────────────────────
+const VIDEO_URL = "https://media4-xues.vercel.app/fondecran.mp4";
+
+// ─── GLOBAL STYLES + WOW ANIMATIONS ─────────────────────
 const GlobalStyles = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -44,19 +46,40 @@ const GlobalStyles = () => (
     @keyframes fadeUp { from { opacity:0; transform:translateY(24px) } to { opacity:1; transform:translateY(0) } }
     @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
     @keyframes scaleIn { from { opacity:0; transform:scale(0.92) } to { opacity:1; transform:scale(1) } }
-    @keyframes slideDown { from { opacity:0; transform:translateY(-20px) } to { opacity:1; transform:translateY(0) } }
     @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.03)} }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
     @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
     @keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
     @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    @keyframes floatSlow { 0%,100%{transform:translate(0,0) rotate(0deg)} 33%{transform:translate(10px,-15px) rotate(2deg)} 66%{transform:translate(-8px,8px) rotate(-1deg)} }
+    @keyframes glowPulse { 0%,100%{box-shadow:0 0 20px rgba(200,16,46,0.2)} 50%{box-shadow:0 0 40px rgba(200,16,46,0.4), 0 0 80px rgba(200,16,46,0.1)} }
+    @keyframes borderGlow {
+      0% { border-color: rgba(200,16,46,0.3) }
+      33% { border-color: rgba(74,127,181,0.3) }
+      66% { border-color: rgba(232,200,64,0.3) }
+      100% { border-color: rgba(200,16,46,0.3) }
+    }
+    @keyframes ripple {
+      0% { transform: scale(0); opacity: 0.6 }
+      100% { transform: scale(4); opacity: 0 }
+    }
+    @keyframes slideInRight { from { opacity:0; transform:translateX(60px) } to { opacity:1; transform:translateX(0) } }
+    @keyframes slideInLeft { from { opacity:0; transform:translateX(-60px) } to { opacity:1; transform:translateX(0) } }
+    @keyframes typewriter { from { width: 0 } to { width: 100% } }
+    @keyframes sparkle {
+      0%,100% { opacity:0; transform:scale(0) rotate(0deg) }
+      50% { opacity:1; transform:scale(1) rotate(180deg) }
+    }
+    @keyframes screenFade {
+      from { opacity: 0; transform: scale(1.02) }
+      to { opacity: 1; transform: scale(1) }
+    }
 
-    .totem-btn { transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+    .totem-btn { transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; position: relative; overflow: hidden; }
     .totem-btn:hover {
       transform: translateY(-4px) scale(1.01);
-      background: rgba(255,255,255,0.08) !important;
-      border-color: rgba(255,255,255,0.15) !important;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.3) !important;
+      border-color: rgba(255,255,255,0.2) !important;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.3), 0 0 40px rgba(200,16,46,0.1) !important;
     }
     .totem-btn:active { transform: translateY(-1px) scale(0.99); }
 
@@ -64,13 +87,15 @@ const GlobalStyles = () => (
     .partner-card:hover {
       transform: translateY(-6px) scale(1.04);
       background: rgba(255,255,255,0.08) !important;
-      border-color: rgba(255,255,255,0.15) !important;
+      border-color: rgba(255,255,255,0.2) !important;
       box-shadow: 0 16px 48px rgba(0,0,0,0.3) !important;
     }
 
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #C8102E40; border-radius: 4px; }
+
+    .screen-enter { animation: screenFade 0.5s ease both; }
   `}</style>
 );
 
@@ -81,7 +106,7 @@ const Strip = ({ h = 4, style = {} }: { h?: number; style?: CSSProperties }) => 
   </div>
 );
 
-// ─── ICONS (SVG) ──────────────────────────────────────────
+// ─── ICONS ────────────────────────────────────────────────
 const Icon = ({ name, size = 24, color = "currentColor" }: { name: string; size?: number; color?: string }) => {
   const paths: Record<string, ReactNode> = {
     web: <><circle cx="12" cy="12" r="10" strokeWidth="1.5"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" strokeWidth="1.5"/></>,
@@ -91,6 +116,7 @@ const Icon = ({ name, size = 24, color = "currentColor" }: { name: string; size?
     home: <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>,
     arrow: <path d="M7 17L17 7M17 7H7M17 7v10" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>,
     external: <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>,
+    clock: <><circle cx="12" cy="12" r="10" strokeWidth="1.5"/><polyline points="12 6 12 12 16 14" strokeWidth="1.5"/></>,
   };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeLinecap="round" strokeLinejoin="round">
@@ -99,22 +125,86 @@ const Icon = ({ name, size = 24, color = "currentColor" }: { name: string; size?
   );
 };
 
-// ═══════════════════════════════════════════════════════════
-// 1. ATTRACT SCREEN — Fond vidéo NATIVE plein écran
-// ═══════════════════════════════════════════════════════════
+// ─── LIVE CLOCK ✨ ──────────────────────────────────────────
+const LiveClock = ({ style = {} }: { style?: CSSProperties }) => {
+  const [time, setTime] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const h = time.getHours().toString().padStart(2, "0");
+  const m = time.getMinutes().toString().padStart(2, "0");
+  const s = time.getSeconds().toString().padStart(2, "0");
+  return (
+    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, ...style }}>
+      {h}<span style={{ animation: "blink 1s steps(1) infinite" }}>:</span>{m}<span style={{ opacity: 0.4, fontSize: "0.75em" }}>{s}</span>
+    </span>
+  );
+};
 
-// ────────────────────────────────────────────────────
-// 🎬 URL DIRECTE DU MP4 — Balise <video> native
-// ────────────────────────────────────────────────────
-const VIDEO_URL = "https://media4-xues.vercel.app/fondecran.mp4";
+// ─── FLOATING PARTICLES ✨ ────────────────────────────────
+const Particles = ({ count = 20 }: { count?: number }) => {
+  const particles = useRef(
+    Array.from({ length: count }, (_, i) => ({
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 3 + 1,
+      duration: Math.random() * 20 + 15,
+      delay: Math.random() * -20,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      opacity: Math.random() * 0.3 + 0.1,
+    }))
+  ).current;
 
-const Attract = ({ onTouch }: { onTouch: () => void }) => {
+  return (
+    <div style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none", overflow: "hidden" }}>
+      {particles.map((p, i) => (
+        <div key={i} style={{
+          position: "absolute",
+          left: `${p.x}%`, top: `${p.y}%`,
+          width: p.size, height: p.size,
+          borderRadius: "50%",
+          background: p.color,
+          opacity: p.opacity,
+          animation: `floatSlow ${p.duration}s ${p.delay}s ease-in-out infinite`,
+          boxShadow: `0 0 ${p.size * 3}px ${p.color}40`,
+        }} />
+      ))}
+    </div>
+  );
+};
+
+// ─── SPARKLES EFFECT ✨ ──────────────────────────────────
+const Sparkles = ({ active }: { active: boolean }) => {
+  if (!active) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none" }}>
+      {Array.from({ length: 12 }).map((_, i) => (
+        <div key={i} style={{
+          position: "absolute",
+          left: `${15 + Math.random() * 70}%`,
+          top: `${10 + Math.random() * 80}%`,
+          width: 6, height: 6,
+          background: COLORS[i % COLORS.length],
+          borderRadius: "50%",
+          animation: `sparkle ${0.8 + Math.random() * 0.6}s ${i * 0.07}s ease both`,
+          boxShadow: `0 0 12px ${COLORS[i % COLORS.length]}`,
+        }} />
+      ))}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════
+// 1. ATTRACT SCREEN
+// ═══════════════════════════════════════════════════════════
+const Attract = ({ onTouch, videoRef }: { onTouch: () => void; videoRef: React.RefObject<HTMLVideoElement | null> }) => {
   const [line, setLine] = useState(0);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const taglines = [
     "Fabricant de peintures depuis 1936.",
     "110 000+ teintes à votre disposition.",
     "L'excellence couleur, au service des pros.",
+    "Ivry-sur-Seine · Votre partenaire local.",
   ];
 
   useEffect(() => {
@@ -122,48 +212,22 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
     return () => clearInterval(t);
   }, []);
 
+  // Vitesse normale sur l'attract
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {});
-    }
+    if (videoRef.current) videoRef.current.playbackRate = 1;
   }, []);
 
   return (
-    <div onClick={onTouch} style={{ position: "absolute", inset: 0, cursor: "pointer", overflow: "hidden", background: "#000" }}>
+    <div onClick={onTouch} className="screen-enter" style={{ position: "absolute", inset: 0, cursor: "pointer", overflow: "hidden", background: "#000" }}>
 
-      {/* LAYER 0 — Gradient fallback (visible pendant le chargement vidéo) */}
-      <div style={{
-        position: "absolute", inset: 0, zIndex: 0,
-        background: `linear-gradient(135deg, ${B.navyDeep} 0%, #0A1628 25%, #162544 50%, #1B2A4A 75%, ${B.navyDeep} 100%)`,
-        backgroundSize: "400% 400%",
-        animation: "gradientShift 20s ease infinite",
-      }} />
-
-      {/* LAYER 1 — VIDEO NATIVE <video> PLEIN ÉCRAN — PAS d'iframe ! */}
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        loop
-        playsInline
-        style={{
-          position: "absolute",
-          top: 0, left: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          zIndex: 1,
-        }}
-      >
-        <source src={VIDEO_URL} type="video/mp4" />
-      </video>
+      <Particles count={15} />
 
       {/* Color strip TOP */}
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10 }}>
         <Strip h={5} />
       </div>
 
-      {/* MAIN CONTENT — dark glass box par-dessus la vidéo */}
+      {/* MAIN CONTENT */}
       <div style={{
         position: "relative", zIndex: 10,
         height: "100%",
@@ -174,8 +238,8 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
       }}>
         <div style={{
           background: "rgba(0, 15, 40, 0.50)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
           borderRadius: 32,
           border: "1px solid rgba(255,255,255,0.08)",
           padding: "48px 64px 52px",
@@ -184,7 +248,7 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
           maxWidth: 680,
           width: "100%",
           boxShadow: "0 32px 80px rgba(0,0,0,0.4)",
-          animation: "scaleIn 0.7s 0.1s ease both",
+          animation: "scaleIn 0.7s 0.1s ease both, borderGlow 6s ease infinite",
           opacity: 0,
         }}>
           {/* Status badge */}
@@ -198,7 +262,7 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
           }}>
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", animation: "blink 2s infinite", flexShrink: 0 }} />
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: 3, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", fontWeight: 500 }}>
-              Totem Interactif · Ivry sur seine - 94
+              Totem Interactif · Ivry-sur-Seine
             </span>
           </div>
 
@@ -220,10 +284,10 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
           }}>
             La couleur,<br />
             <span style={{
-              background: `linear-gradient(135deg, ${B.red}, #FF4D6A, ${B.red})`,
+              background: `linear-gradient(135deg, ${B.red}, #FF4D6A, #E8C840, ${B.red})`,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
-              backgroundSize: "200% auto",
+              backgroundSize: "300% auto",
               animation: "shimmer 4s linear infinite",
             }}>sublimée.</span>
           </h1>
@@ -255,7 +319,7 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
               padding: "22px 56px", borderRadius: 100,
               background: B.red, border: "none", cursor: "pointer",
               color: "#fff", fontSize: 17, fontWeight: 700, letterSpacing: 0.5,
-              animation: "fadeUp 0.8s 0.7s ease both, pulse 3s 2s ease-in-out infinite",
+              animation: "fadeUp 0.8s 0.7s ease both, pulse 3s 2s ease-in-out infinite, glowPulse 3s 2s ease-in-out infinite",
               opacity: 0,
               boxShadow: `0 12px 40px ${B.red}50, 0 0 80px ${B.red}20`,
               position: "relative", overflow: "hidden",
@@ -267,7 +331,7 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
               backgroundSize: "200% 100%",
               animation: "shimmer 2.5s linear infinite",
             }} />
-            <span style={{ position: "relative", zIndex: 1 }}>Toucher pour commencer</span>
+            <span style={{ position: "relative", zIndex: 1 }}>✨ Toucher pour commencer</span>
           </button>
         </div>
       </div>
@@ -289,9 +353,12 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
             alt="Logo" style={{ height: 18, opacity: 0.3 }}
             onError={(e) => { (e.target as HTMLElement).style.display = "none"; }}
           />
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", fontFamily: "'JetBrains Mono', monospace" }}>
-            {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <LiveClock style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }} />
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", fontFamily: "'JetBrains Mono', monospace" }}>
+              {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+            </span>
+          </div>
         </div>
         <Strip h={4} />
       </div>
@@ -300,7 +367,7 @@ const Attract = ({ onTouch }: { onTouch: () => void }) => {
 };
 
 // ═══════════════════════════════════════════════════════════
-// 2. HOME — 3 boutons + bouton retour vers attract
+// 2. HOME — Ivry-sur-Seine + Video ralentie + surprises
 // ═══════════════════════════════════════════════════════════
 interface BtnConfig {
   id: string;
@@ -348,71 +415,41 @@ const BTNS: BtnConfig[] = [
   },
 ];
 
-const Home = ({ onSelect, onBack }: { onSelect: (btn: BtnConfig) => void; onBack: () => void }) => {
+const Home = ({ onSelect, onBack, videoRef }: { onSelect: (btn: BtnConfig) => void; onBack: () => void; videoRef: React.RefObject<HTMLVideoElement | null> }) => {
   const [vis, setVis] = useState(false);
-  const bgVideoRef = useRef<HTMLVideoElement>(null);
+  const [greeting, setGreeting] = useState("");
+
   useEffect(() => { requestAnimationFrame(() => setVis(true)); }, []);
 
-  // Vidéo au ralenti extrême (0.15x = ~7x plus lent)
+  // ✨ Ralentir la vidéo sur cette page
   useEffect(() => {
-    if (bgVideoRef.current) {
-      bgVideoRef.current.playbackRate = 0.15;
-      bgVideoRef.current.play().catch(() => {});
-    }
+    if (videoRef.current) videoRef.current.playbackRate = 0.15;
+    return () => { if (videoRef.current) videoRef.current.playbackRate = 1; };
+  }, []);
+
+  // ✨ Salutation dynamique selon l'heure
+  useEffect(() => {
+    const h = new Date().getHours();
+    if (h < 12) setGreeting("Bonjour ☀️");
+    else if (h < 18) setGreeting("Bon après-midi 🌤");
+    else setGreeting("Bonsoir 🌙");
   }, []);
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: B.navyDeep, position: "relative", overflow: "hidden" }}>
+    <div className="screen-enter" style={{ height: "100%", display: "flex", flexDirection: "column", background: B.navyDeep, position: "relative", overflow: "hidden" }}>
 
-      {/* LAYER 0 — Vidéo ultra ralentie en fond */}
-      <video
-        ref={bgVideoRef}
-        autoPlay
-        muted
-        loop
-        playsInline
-        style={{
-          position: "absolute", inset: 0, zIndex: 0,
-          width: "100%", height: "100%",
-          objectFit: "cover",
-          opacity: 0.25,
-          filter: "blur(2px)",
-        }}
-      >
-        <source src={VIDEO_URL} type="video/mp4" />
-      </video>
+      <Particles count={12} />
 
-      {/* LAYER 1 — Dark overlay sur la vidéo */}
-      <div style={{
-        position: "absolute", inset: 0, zIndex: 0,
-        background: `linear-gradient(160deg, ${B.navyDeep}e0 0%, #0D1F3Ce0 40%, #162544d0 70%, #0A1628e0 100%)`,
-      }} />
-      {[
-        { c: "#C8102E", x: "5%", y: "30%", s: 350 },
-        { c: "#4A7FB5", x: "90%", y: "20%", s: 300 },
-        { c: "#E8C840", x: "50%", y: "90%", s: 280 },
-      ].map((b, i) => (
-        <div key={i} style={{
-          position: "absolute", zIndex: 0,
-          width: b.s, height: b.s, borderRadius: "50%",
-          background: `radial-gradient(circle, ${b.c}18, transparent 70%)`,
-          left: b.x, top: b.y, transform: "translate(-50%, -50%)",
-          animation: `float ${7 + i * 1.5}s ease-in-out ${i * 0.5}s infinite`,
-          filter: "blur(50px)",
-        }} />
-      ))}
-
-      {/* HEADER — avec bouton retour vers l'écran d'accueil (attract) */}
+      {/* HEADER */}
       <header style={{
         position: "relative", zIndex: 10,
-        background: "rgba(0,15,40,0.5)",
+        background: "rgba(0,15,40,0.6)",
         backdropFilter: "blur(16px)",
         borderBottom: "1px solid rgba(255,255,255,0.08)",
         padding: "0 48px", display: "flex", alignItems: "center", justifyContent: "space-between",
         height: 72, flexShrink: 0,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          {/* ← Bouton retour vers attract */}
           <button onClick={onBack} style={{
             width: 42, height: 42, borderRadius: 12,
             border: "1px solid rgba(255,255,255,0.1)",
@@ -429,27 +466,48 @@ const Home = ({ onSelect, onBack }: { onSelect: (btn: BtnConfig) => void; onBack
           />
           <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.12)" }} />
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Magasin Ivry sur Seine - 94</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Magasin Ivry-sur-Seine</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
               <span style={{ width: 6, height: 6, borderRadius: 3, background: "#22c55e" }} />
               Totem Entrée · En service
             </div>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 3 }}>
-          {COLORS.slice(0, 12).map((c, i) => (
-            <div key={i} style={{ width: 16, height: 16, borderRadius: 4, background: c, opacity: 0.7 }} />
-          ))}
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          {/* ✨ Live clock dans le header */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <Icon name="clock" size={14} color="rgba(255,255,255,0.4)" />
+            <LiveClock style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }} />
+          </div>
+          <div style={{ display: "flex", gap: 3 }}>
+            {COLORS.slice(0, 8).map((c, i) => (
+              <div key={i} style={{ width: 14, height: 14, borderRadius: 4, background: c, opacity: 0.7 }} />
+            ))}
+          </div>
         </div>
       </header>
 
       <Strip h={3} />
 
-      {/* HERO TEXT */}
+      {/* ✨ HERO TEXT — avec salutation dynamique */}
       <div style={{
         position: "relative", zIndex: 10,
-        padding: "40px 48px 16px", flexShrink: 0,
+        padding: "32px 48px 12px", flexShrink: 0,
       }}>
+        {/* ✨ Greeting badge */}
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 8,
+          padding: "6px 18px", borderRadius: 100,
+          background: "rgba(255,255,255,0.06)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          marginBottom: 16,
+          animation: "slideInLeft 0.5s ease both",
+        }}>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", fontWeight: 500 }}>{greeting}</span>
+          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "'JetBrains Mono', monospace" }}>
+            · {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
+          </span>
+        </div>
         <h1 style={{
           fontSize: 38, fontWeight: 900, color: "#fff", letterSpacing: -1,
           opacity: vis ? 1 : 0, transform: vis ? "translateY(0)" : "translateY(16px)",
@@ -468,10 +526,10 @@ const Home = ({ onSelect, onBack }: { onSelect: (btn: BtnConfig) => void; onBack
         </p>
       </div>
 
-      {/* 3 BOUTONS */}
+      {/* 3 BOUTONS avec animations d'entrée */}
       <div style={{
         position: "relative", zIndex: 10,
-        flex: 1, padding: "24px 48px 24px",
+        flex: 1, padding: "20px 48px 20px",
         display: "flex", flexDirection: "column", justifyContent: "center",
         gap: 24,
         maxWidth: 820, width: "100%", margin: "0 auto",
@@ -484,31 +542,38 @@ const Home = ({ onSelect, onBack }: { onSelect: (btn: BtnConfig) => void; onBack
             style={{
               display: "flex", alignItems: "center", gap: 32,
               padding: "0",
-              height: "calc((100vh - 360px) / 3)",
-              minHeight: 140,
+              height: "calc((100vh - 380px) / 3)",
+              minHeight: 130,
               borderRadius: 24,
               background: "transparent",
               border: "1px solid rgba(255,255,255,0.1)",
               textAlign: "left" as const,
               boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-              position: "relative" as const, overflow: "hidden" as const,
               opacity: vis ? 1 : 0,
-              transform: vis ? "translateY(0)" : "translateY(30px)",
-              transition: `opacity 0.6s ${0.15 + i * 0.12}s ease, transform 0.6s ${0.15 + i * 0.12}s cubic-bezier(0.4, 0, 0.2, 1)`,
+              transform: vis ? "translateX(0)" : "translateX(60px)",
+              transition: `all 0.6s ${0.2 + i * 0.15}s cubic-bezier(0.4, 0, 0.2, 1)`,
+              animation: vis ? `borderGlow 6s ${i * 2}s ease infinite` : "none",
             }}
           >
-            <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${btn.bgImage})`, backgroundSize: "cover", backgroundPosition: "center", zIndex: 0 }} />
-            <div style={{ position: "absolute", inset: 0, zIndex: 1, background: `linear-gradient(135deg, rgba(0,15,40,0.75) 0%, rgba(0,15,40,0.55) 50%, ${btn.accent}30 100%)` }} />
+            <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${btn.bgImage})`, backgroundSize: "cover", backgroundPosition: "center", zIndex: 0, borderRadius: 24 }} />
+            <div style={{ position: "absolute", inset: 0, zIndex: 1, background: `linear-gradient(135deg, rgba(0,15,40,0.78) 0%, rgba(0,15,40,0.55) 50%, ${btn.accent}25 100%)`, borderRadius: 24 }} />
             <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 5, zIndex: 3, background: btn.gradient, borderRadius: "24px 0 0 24px" }} />
-            <div style={{ position: "relative", zIndex: 2, width: 80, height: 80, borderRadius: 20, flexShrink: 0, marginLeft: 36, background: btn.gradient, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 12px 32px ${btn.accent}40` }}>
-              <Icon name={btn.icon} size={36} color="#fff" />
+            <div style={{
+              position: "relative", zIndex: 2,
+              width: 72, height: 72, borderRadius: 18, flexShrink: 0,
+              marginLeft: 32,
+              background: btn.gradient,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: `0 12px 32px ${btn.accent}40`,
+            }}>
+              <Icon name={btn.icon} size={32} color="#fff" />
             </div>
             <div style={{ position: "relative", zIndex: 2, flex: 1 }}>
-              <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", letterSpacing: -0.5, textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>{btn.label}</div>
-              <div style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginTop: 6, fontWeight: 400 }}>{btn.sub}</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: "#fff", letterSpacing: -0.5, textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>{btn.label}</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 5, fontWeight: 400 }}>{btn.sub}</div>
             </div>
-            <div style={{ position: "relative", zIndex: 2, marginRight: 36, opacity: 0.35 }}>
-              <Icon name="arrow" size={24} color="#fff" />
+            <div style={{ position: "relative", zIndex: 2, marginRight: 32, opacity: 0.35 }}>
+              <Icon name="arrow" size={22} color="#fff" />
             </div>
           </button>
         ))}
@@ -529,7 +594,7 @@ const Home = ({ onSelect, onBack }: { onSelect: (btn: BtnConfig) => void; onBack
         </span>
         <img src="https://media4-duplicated-z3xl.bolt.host/logo.png" alt="Logo" style={{ height: 18, opacity: 0.25 }} onError={(e) => { (e.target as HTMLElement).style.display = "none"; }} />
         <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", fontFamily: "'JetBrains Mono', monospace" }}>
-          {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
+          📍 Ivry-sur-Seine · {new Date().toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })}
         </span>
       </footer>
       <Strip h={3} style={{ position: "relative", zIndex: 10 }} />
@@ -541,7 +606,7 @@ const Home = ({ onSelect, onBack }: { onSelect: (btn: BtnConfig) => void; onBack
 // SHELL
 // ═══════════════════════════════════════════════════════════
 const Shell = ({ btn, onHome, children }: { btn: BtnConfig; onHome: () => void; children: ReactNode }) => (
-  <div style={{ height: "100%", display: "flex", flexDirection: "column", background: B.navyDeep }}>
+  <div className="screen-enter" style={{ height: "100%", display: "flex", flexDirection: "column", background: B.navyDeep }}>
     <nav style={{
       background: "rgba(0,15,40,0.6)", backdropFilter: "blur(16px)",
       borderBottom: "1px solid rgba(255,255,255,0.08)",
@@ -584,7 +649,10 @@ const Shell = ({ btn, onHome, children }: { btn: BtnConfig; onHome: () => void; 
         🚀 Propulsé par <strong style={{ color: "rgba(255,255,255,0.4)" }}>MEDIA4</strong>
       </span>
       <img src="https://media4-duplicated-z3xl.bolt.host/logo.png" alt="Logo" style={{ height: 18, opacity: 0.25 }} onError={(e) => { (e.target as HTMLElement).style.display = "none"; }} />
-      <Strip h={10} style={{ width: 160, borderRadius: 5, overflow: "hidden" }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <LiveClock style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }} />
+        <Strip h={10} style={{ width: 120, borderRadius: 5, overflow: "hidden" }} />
+      </div>
     </div>
   </div>
 );
@@ -637,7 +705,7 @@ const SelectionMois = () => (
 );
 
 // ═══════════════════════════════════════════════════════════
-// PARTENAIRES — Toutes les cartes de même taille, centrées
+// PARTENAIRES — Cartes identiques, centrées
 // ═══════════════════════════════════════════════════════════
 const Partenaires = () => {
   const [vis, setVis] = useState(false);
@@ -645,7 +713,6 @@ const Partenaires = () => {
 
   return (
     <div style={{ height: "100%", overflow: "auto", background: B.navyDeep }}>
-      {/* Hero */}
       <div style={{
         background: `linear-gradient(135deg, ${B.navy} 0%, #0D1F3C 100%)`,
         padding: "48px 48px 52px", position: "relative", overflow: "hidden",
@@ -664,7 +731,7 @@ const Partenaires = () => {
             fontSize: 11, color: "rgba(255,255,255,0.5)", letterSpacing: 2, textTransform: "uppercase",
             fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, marginBottom: 16,
           }}>
-            {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
+            📍 Ivry-sur-Seine · {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
           </div>
           <h2 style={{ fontSize: 34, fontWeight: 900, color: "#fff", letterSpacing: -0.5, margin: 0 }}>Nos Partenaires</h2>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", marginTop: 8, fontWeight: 400 }}>L'excellence au service de vos projets</p>
@@ -672,7 +739,6 @@ const Partenaires = () => {
       </div>
       <Strip h={3} />
 
-      {/* Grille flex centrée — toutes les cartes identiques */}
       <div style={{ padding: "40px 48px" }}>
         <div style={{
           display: "flex",
@@ -698,8 +764,9 @@ const Partenaires = () => {
                 gap: 16,
                 boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
                 opacity: vis ? 1 : 0,
-                transform: vis ? "translateY(0)" : "translateY(20px)",
-                transition: `all 0.5s ${0.1 + i * 0.08}s cubic-bezier(0.4, 0, 0.2, 1)`,
+                transform: vis ? "translateY(0) scale(1)" : "translateY(30px) scale(0.9)",
+                transition: `all 0.5s ${0.1 + i * 0.1}s cubic-bezier(0.4, 0, 0.2, 1)`,
+                animation: vis ? `borderGlow 6s ${i * 1.2}s ease infinite` : "none",
               }}
             >
               <div style={{
@@ -719,7 +786,7 @@ const Partenaires = () => {
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{p.name}</div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 4, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 0.5 }}>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 4, fontFamily: "'JetBrains Mono', monospace" }}>
                   Partenaire officiel
                 </div>
               </div>
@@ -743,33 +810,51 @@ const Partenaires = () => {
 };
 
 // ═══════════════════════════════════════════════════════════
-// MAIN APP — Auto-fullscreen + navigation complète
+// MAIN APP — Vidéo unique préchargée + transitions
 // ═══════════════════════════════════════════════════════════
 export default function App() {
   const [screen, setScreen] = useState("attract");
   const [content, setContent] = useState<BtnConfig | null>(null);
+  const [sparkles, setSparkles] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  // ⬛ AUTO-FULLSCREEN au premier clic/toucher
+  // ⬛ PRÉCHARGEMENT VIDÉO — une seule balise <video>, toujours présente
   useEffect(() => {
-    const goFullscreen = () => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    }
+  }, []);
+
+  // ⬛ AUTO-FULLSCREEN au premier clic
+  useEffect(() => {
+    const goFS = () => {
       const el = document.documentElement as any;
       const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
       if (rfs) rfs.call(el).catch(() => {});
     };
-    document.addEventListener("click", goFullscreen, { once: true });
-    return () => document.removeEventListener("click", goFullscreen);
+    document.addEventListener("click", goFS, { once: true });
+    return () => document.removeEventListener("click", goFS);
   }, []);
 
-  // Auto-return attract après 2min d'inactivité
+  // Auto-return attract après 2min
   useEffect(() => {
     if (screen === "attract") return;
     const t = setTimeout(() => { setScreen("attract"); setContent(null); }, 120000);
     return () => clearTimeout(t);
   }, [screen, content]);
 
-  const goAttract = useCallback(() => { setContent(null); setScreen("attract"); }, []);
-  const goHome = useCallback(() => { setContent(null); setScreen("home"); }, []);
-  const open = useCallback((btn: BtnConfig) => { setContent(btn); setScreen("content"); }, []);
+  // ✨ Sparkles on transition
+  const navigate = useCallback((target: string, btn?: BtnConfig) => {
+    setSparkles(true);
+    setTimeout(() => setSparkles(false), 1000);
+    if (btn) setContent(btn);
+    else setContent(null);
+    setScreen(target);
+  }, []);
+
+  const goAttract = useCallback(() => navigate("attract"), [navigate]);
+  const goHome = useCallback(() => navigate("home"), [navigate]);
+  const open = useCallback((btn: BtnConfig) => navigate("content", btn), [navigate]);
 
   const renderContent = () => {
     if (!content) return null;
@@ -781,17 +866,56 @@ export default function App() {
     }
   };
 
+  // ✨ Opacité vidéo selon l'écran
+  const videoOpacity = screen === "attract" ? 1 : screen === "home" ? 0.2 : 0;
+
   return (
     <>
       <GlobalStyles />
+      <Sparkles active={sparkles} />
       <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden", background: "#000" }}>
-        {screen === "attract" && <Attract onTouch={() => setScreen("home")} />}
-        {screen === "home" && <Home onSelect={open} onBack={goAttract} />}
-        {screen === "content" && content && (
-          <Shell btn={content} onHome={goHome}>
-            {renderContent()}
-          </Shell>
+
+        {/* ═══ VIDÉO UNIQUE PRÉCHARGÉE — Toujours présente, jamais recréée ═══ */}
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          style={{
+            position: "absolute",
+            top: 0, left: 0,
+            width: "100%", height: "100%",
+            objectFit: "cover",
+            zIndex: 0,
+            opacity: videoOpacity,
+            transition: "opacity 1s ease",
+            filter: screen === "home" ? "blur(3px)" : "none",
+          }}
+        >
+          <source src={VIDEO_URL} type="video/mp4" />
+        </video>
+
+        {/* ═══ Dark overlay pour Home (par-dessus la vidéo, sous le contenu) ═══ */}
+        {screen === "home" && (
+          <div style={{
+            position: "absolute", inset: 0, zIndex: 1,
+            background: `linear-gradient(160deg, ${B.navyDeep}e8 0%, #0D1F3Ce0 40%, #162544d8 70%, #0A1628e8 100%)`,
+            transition: "opacity 0.5s ease",
+          }} />
         )}
+
+        {/* ═══ SCREENS ═══ */}
+        <div style={{ position: "relative", zIndex: 2, width: "100%", height: "100%" }}>
+          {screen === "attract" && <Attract onTouch={() => navigate("home")} videoRef={videoRef} />}
+          {screen === "home" && <Home onSelect={open} onBack={goAttract} videoRef={videoRef} />}
+          {screen === "content" && content && (
+            <Shell btn={content} onHome={goHome}>
+              {renderContent()}
+            </Shell>
+          )}
+        </div>
       </div>
     </>
   );
