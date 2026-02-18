@@ -425,20 +425,16 @@ const Partenaires = () => {
               border:"none",
             }}
           >
-            {/* Logo — TRÈS GRAND, pleine largeur, couleurs naturelles */}
+            {/* Logo — hauteur fixe identique pour tous, largeur auto */}
             <img
               src={p.logo}
               alt={p.name}
-              style={{
-                width:"100%",
-                height:180,
-                objectFit:"contain",
-              }}
+              style={{ height:160, width:"auto", maxWidth:260, objectFit:"contain" }}
               onError={(e) => {
                 const el = e.target as HTMLImageElement;
                 el.style.display = "none";
                 const d = document.createElement("div");
-                d.style.cssText = "width:100%;height:180px;display:flex;align-items:center;justify-content:center;font-size:72px;font-weight:900;color:rgba(255,255,255,.85);font-family:Outfit,sans-serif";
+                d.style.cssText = "height:160px;width:260px;display:flex;align-items:center;justify-content:center;font-size:72px;font-weight:900;color:rgba(255,255,255,.85);font-family:Outfit,sans-serif";
                 d.textContent = p.name.charAt(0);
                 el.parentNode?.insertBefore(d, el.nextSibling);
               }}
