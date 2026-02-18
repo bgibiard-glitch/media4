@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { ReactNode, CSSProperties } from "react";
 
 const RED  = "#C8102E";
@@ -76,71 +76,21 @@ const Icon = ({ name, size=24, color="currentColor" }: { name:string; size?:numb
   );
 };
 
-// ─── VIDÉO — optimisée anti-freeze ──────────────────────────────────
-// - preload="auto" pour bufferiser en avance
-// - Gestion stalled/waiting/error avec retry automatique
-// - objectFit cover natif, pas de calcul vh/vw
-const VideoBackground = () => {
-  const ref   = useRef<HTMLVideoElement>(null);
-  const retry = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    const v = ref.current;
-    if (!v) return;
-
-    const tryPlay = () => {
-      v.muted = true;
-      v.play().catch(() => {});
-    };
-
-    // Reload + play sur freeze/stall
-    const onStall = () => {
-      if (retry.current) clearTimeout(retry.current);
-      retry.current = setTimeout(() => {
-        const t = v.currentTime;
-        v.load();
-        v.currentTime = t;
-        tryPlay();
-      }, 1500);
-    };
-
-    const onError = () => {
-      if (retry.current) clearTimeout(retry.current);
-      retry.current = setTimeout(() => { v.load(); tryPlay(); }, 3000);
-    };
-
-    v.addEventListener("stalled",  onStall);
-    v.addEventListener("waiting",  onStall);
-    v.addEventListener("error",    onError);
-    document.addEventListener("touchstart", tryPlay, { once: true });
-    document.addEventListener("click",      tryPlay, { once: true });
-
-    tryPlay();
-
-    return () => {
-      v.removeEventListener("stalled", onStall);
-      v.removeEventListener("waiting", onStall);
-      v.removeEventListener("error",   onError);
-      if (retry.current) clearTimeout(retry.current);
-    };
-  }, []);
-
-  return (
-    <div style={{ position:"fixed", inset:0, zIndex:0, background:"#111" }}>
-      <video
-        ref={ref}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-        style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }}
-      >
-        <source src={VIDEO_MP4} type="video/mp4" />
-      </video>
-    </div>
-  );
-};
+// ─── VIDÉO — pure HTML, zéro JS pour éviter tout clignotement
+// Le navigateur gère seul le loop/autoplay, on ne touche JAMAIS à la vidéo en JS
+const VideoBackground = () => (
+  <div style={{ position:"fixed", inset:0, zIndex:0, background:"#000" }}>
+    <video
+      autoPlay
+      muted
+      loop
+      playsInline
+      style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+    >
+      <source src={VIDEO_MP4} type="video/mp4" />
+    </video>
+  </div>
+);
 
 // ─── TYPES & CONFIG BOUTONS ────────────────────────────────────────
 interface BtnConfig { id:string; label:string; sub:string; icon:string; accent:string; gradient:string; type:string; url?:string; bgImage:string; }
@@ -395,8 +345,8 @@ const Partenaires = () => {
       </div>
       <Strip h={3} />
 
-      {/* GRILLE — logos très grands, pas d'encadrement */}
-      <div style={{ padding:"24px 30px", display:"flex", flexWrap:"wrap", gap:20, justifyContent:"center" }}>
+      {/* GRILLE — logos énormes, AUCUNE carte, AUCUN fond, juste les logos */}
+      <div style={{ padding:"20px 24px", display:"flex", flexWrap:"wrap", gap:32, justifyContent:"center", alignItems:"center" }}>
         {PARTNERS.map((p,i) => (
           <a
             key={i}
@@ -405,45 +355,45 @@ const Partenaires = () => {
             rel="noopener noreferrer"
             className="pcard"
             style={{
-              flex:"1 1 calc(50% - 12px)",
-              minWidth:210,
-              borderRadius:20,
-              border:"1px solid rgba(255,255,255,.1)",
-              background:"rgba(255,255,255,.06)",
-              backdropFilter:"blur(10px)",
-              padding:"30px 20px 24px",
-              display:"flex", flexDirection:"column", alignItems:"center", gap:16,
-              boxShadow:"0 4px 22px rgba(0,0,0,.3)",
+              flex:"1 1 calc(50% - 20px)",
+              minWidth:220,
+              display:"flex", flexDirection:"column", alignItems:"center", gap:12,
               opacity: vis ? 1 : 0,
-              transform: vis ? "translateY(0)" : "translateY(16px)",
+              transform: vis ? "translateY(0)" : "translateY(14px)",
               transition:`all .4s ${.06+i*.07}s cubic-bezier(.4,0,.2,1)`,
               cursor:"pointer", textDecoration:"none",
+              padding:"16px 12px",
+              // Aucun fond, aucune bordure, aucune card
+              background:"transparent",
+              border:"none",
+              borderRadius:0,
             }}
           >
-            {/* Logo grand, sans fond, sans encadrement */}
-            <img
-              src={p.logo}
-              alt={p.name}
-              style={{
-                width:130,
-                height:80,
-                objectFit:"contain",
-                // Pas de filter invert — on affiche le logo tel quel
-                // Si fond blanc sur fond sombre : on met un léger halo blanc derrière
-                filter:"drop-shadow(0 0 8px rgba(255,255,255,.15))",
-              }}
-              onError={(e) => {
-                const el = e.target as HTMLImageElement;
-                el.style.display = "none";
-                const d = document.createElement("div");
-                d.style.cssText = "width:130px;height:80px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;color:rgba(255,255,255,.7);font-family:Outfit,sans-serif";
-                d.textContent = p.name.charAt(0);
-                el.parentNode?.insertBefore(d, el.nextSibling);
-              }}
-            />
+            {/* Logo très grand — fond blanc léger pour lisibilité */}
+            <div style={{
+              width:"100%", maxWidth:280, height:120,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              background:"rgba(255,255,255,0.92)",
+              borderRadius:16,
+              padding:"12px 24px",
+            }}>
+              <img
+                src={p.logo}
+                alt={p.name}
+                style={{ maxWidth:"100%", maxHeight:96, objectFit:"contain" }}
+                onError={(e) => {
+                  const el = e.target as HTMLImageElement;
+                  el.style.display = "none";
+                  const d = document.createElement("div");
+                  d.style.cssText = "font-size:48px;font-weight:900;color:#333;font-family:Outfit,sans-serif";
+                  d.textContent = p.name.charAt(0);
+                  el.parentNode?.insertBefore(d, el.nextSibling);
+                }}
+              />
+            </div>
             <div style={{ textAlign:"center" }}>
-              <div style={{ fontSize:16, fontWeight:700, color:"#fff" }}>{p.name}</div>
-              <div style={{ fontSize:11, color:"rgba(255,255,255,.42)", marginTop:4, fontFamily:"'JetBrains Mono',monospace", letterSpacing:.4 }}>{p.desc}</div>
+              <div style={{ fontSize:17, fontWeight:700, color:"#fff", textShadow:"0 2px 8px rgba(0,0,0,.6)" }}>{p.name}</div>
+              <div style={{ fontSize:11, color:"rgba(255,255,255,.5)", marginTop:3, fontFamily:"'JetBrains Mono',monospace" }}>{p.desc}</div>
             </div>
           </a>
         ))}
