@@ -158,8 +158,8 @@ const BTNS: BtnConfig[] = [
   { id:"partenaires",  label:"Nos Partenaires du Jour", sub:"L'excellence au quotidien",   icon:"partners", accent:"#14B8A6", gradient:"linear-gradient(135deg,#0D9488,#14B8A6)",type:"partners",                                                                    bgImage:"https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80" },
 ];
 const SITE_BTNS = [
-  { id:"nuances", label:"Nuances Unikalo", sub:"Nos nuances de couleurs", icon:"web" as const, accent:"#7D5FB5", gradient:"linear-gradient(135deg,#7D5FB5,#A87FD6)", url:"https://nuances-unikalo.com", bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
-  { id:"site",    label:"Unikalo",         sub:"Explorez notre univers",  icon:"web" as const, accent:"#4A7FB5", gradient:"linear-gradient(135deg,#4A7FB5,#6BA3D6)", url:"https://unikalo.com",         bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
+  { id:"nuances", label:"Site web : Nuances Unikalo", sub:"Nos nuances de couleurs", icon:"web" as const, accent:"#7D5FB5", gradient:"linear-gradient(135deg,#7D5FB5,#A87FD6)", url:"https://nuances-unikalo.com", bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
+  { id:"site",    label:"Site web : Unikalo",         sub:"Explorez notre univers",  icon:"web" as const, accent:"#4A7FB5", gradient:"linear-gradient(135deg,#4A7FB5,#6BA3D6)", url:"https://unikalo.com",         bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
 ];
 
 // ─── HOME ─────────────────────────────────────────────────────────
