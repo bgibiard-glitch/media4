@@ -243,7 +243,7 @@ const Home = ({ onSelect }: { onSelect:(b:BtnConfig)=>void }) => {
             fontSize:25, fontWeight:800, lineHeight:1.3, color:"#fff",
             letterSpacing:-.3, textShadow:"0 4px 28px rgba(0,0,0,.65)",
           }}>
-            span style={{
+            <span style={{
               background:`linear-gradient(135deg,${B.red},#FF4D6A,#FF2D55,${B.red})`,
               backgroundSize:"300% auto",
               WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
