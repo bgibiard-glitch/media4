@@ -18,7 +18,7 @@ const PARTNERS = [
 ];
 
 const VIDEO_MP4 = "https://media4-xues.vercel.app/fondecran.mp4";
-const PDF_URL   = "https://media4-duplicated-z3xl.bolt.host/pdf.pdf";
+const PDF_URL   = "https://media4-xues.vercel.app/pdf.pdf";
 const QR_URL    = "https://media4-xues.vercel.app/qrcodepdf.png";
 const LOGO_URL  = "https://media4-duplicated-z3xl.bolt.host/logo.png";
 
@@ -292,154 +292,185 @@ const Shell = ({ btn, onHome, children }: { btn:BtnConfig; onHome:()=>void; chil
   </div>
 );
 
-// ─── PAGE : SÉLECTION PDF ──────────────────────────────────────────
-// Rendu PDF.js universel — fonctionne sur Android, iOS, desktop
-// Mode livre : 2 pages côte à côte
+// ─── PAGE : SÉLECTION PDF — PDF.js mode livre 2 pages ─────────────
 const SelectionMois = () => {
-  const [vis,        setVis]       = useState(false);
-  const [pdfReady,   setPdfReady]  = useState(false);
-  const [loading,    setLoading]   = useState(true);
-  const [error,      setError]     = useState("");
-  const [totalPages, setTotalPages] = useState(0);
-  const [spread,     setSpread]    = useState(1); // page de gauche (spread = pages spread,spread+1)
+  const [vis,        setVis]    = useState(false);
+  const [mode,       setMode]   = useState<"loading"|"ready"|"error">("loading");
+  const [totalPages, setTotal]  = useState(0);
+  const [spread,     setSpread] = useState(1);
   const leftRef  = useRef<HTMLCanvasElement>(null);
   const rightRef = useRef<HTMLCanvasElement>(null);
   const pdfRef   = useRef<any>(null);
 
-  // Charge PDF.js depuis CDN une seule fois
   useEffect(() => {
-    setTimeout(()=>setVis(true), 80);
-    const scriptId = "pdfjs-script";
-    if (document.getElementById(scriptId)) { setPdfReady(true); return; }
-    const s = document.createElement("script");
-    s.id  = scriptId;
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-    s.onload = () => {
-      (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc =
+    setTimeout(() => setVis(true), 80);
+
+    const load = () => {
+      const lib = (window as any).pdfjsLib;
+      lib.GlobalWorkerOptions.workerSrc =
         "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-      setPdfReady(true);
+      lib.getDocument({ url: PDF_URL, withCredentials: false })
+        .promise
+        .then((pdf: any) => {
+          pdfRef.current = pdf;
+          setTotal(pdf.numPages);
+          setMode("ready");
+        })
+        .catch(() => setMode("error"));
     };
-    s.onerror = () => setError("Impossible de charger le lecteur PDF");
-    document.head.appendChild(s);
+
+    const existing = document.getElementById("pdfjs-script");
+    if (existing) {
+      (window as any).pdfjsLib ? load() : existing.addEventListener("load", load);
+    } else {
+      const s = document.createElement("script");
+      s.id  = "pdfjs-script";
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+      s.onload  = load;
+      s.onerror = () => setMode("error");
+      document.head.appendChild(s);
+    }
   }, []);
 
-  // Charge le PDF dès que PDF.js est prêt
-  useEffect(() => {
-    if (!pdfReady) return;
-    const lib = (window as any).pdfjsLib;
-    lib.getDocument({ url: PDF_URL, withCredentials: false })
-      .promise
-      .then((pdf: any) => {
-        pdfRef.current = pdf;
-        setTotalPages(pdf.numPages);
-        setLoading(false);
-      })
-      .catch(() => setError("Impossible de charger le PDF"));
-  }, [pdfReady]);
-
-  // Rend une page sur un canvas
-  const renderPage = async (pageNum: number, canvasEl: HTMLCanvasElement | null) => {
-    if (!canvasEl || !pdfRef.current || pageNum < 1 || pageNum > totalPages) {
-      if (canvasEl) {
-        const ctx = canvasEl.getContext("2d");
-        if (ctx) { ctx.clearRect(0, 0, canvasEl.width, canvasEl.height); }
-      }
+  const renderPage = useCallback(async (num: number, canvas: HTMLCanvasElement | null) => {
+    if (!canvas || !pdfRef.current) return;
+    const ctx = canvas.getContext("2d");
+    if (num < 1 || num > (pdfRef.current?.numPages ?? 0)) {
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.width = 0;
       return;
     }
-    const page     = await pdfRef.current.getPage(pageNum);
-    const maxH     = window.innerHeight - 180;
-    const viewport = page.getViewport({ scale: 1 });
-    const scale    = maxH / viewport.height;
-    const vp       = page.getViewport({ scale });
-    canvasEl.width  = vp.width;
-    canvasEl.height = vp.height;
-    await page.render({ canvasContext: canvasEl.getContext("2d")!, viewport: vp }).promise;
-  };
+    const page  = await pdfRef.current.getPage(num);
+    const maxH  = Math.max(300, window.innerHeight - 190);
+    const vp0   = page.getViewport({ scale: 1 });
+    const scale = maxH / vp0.height;
+    const vp    = page.getViewport({ scale });
+    canvas.width  = vp.width;
+    canvas.height = vp.height;
+    await page.render({ canvasContext: canvas.getContext("2d")!, viewport: vp }).promise;
+  }, []);
 
-  // Re-rend les 2 pages à chaque changement
   useEffect(() => {
-    if (loading) return;
+    if (mode !== "ready") return;
     renderPage(spread,     leftRef.current);
     renderPage(spread + 1, rightRef.current);
-  }, [spread, loading, totalPages]);
+  }, [spread, mode, renderPage]);
 
-  const prevSpread = () => setSpread(s => Math.max(1,       s - 2));
-  const nextSpread = () => setSpread(s => Math.min(totalPages, s + 2));
-  const canPrev    = spread > 1;
-  const canNext    = spread + 1 < totalPages;
+  const canPrev = spread > 1;
+  const canNext = spread + 1 <= totalPages;
 
   return (
-    <div style={{ height:"100%", display:"flex", flexDirection:"column", background:"rgba(0,6,20,.7)" }}>
+    <div style={{ height:"100%", display:"flex", flexDirection:"column", background:"rgba(0,6,20,.85)" }}>
+
       {/* Header */}
-      <div style={{ padding:"16px 28px", flexShrink:0, background:`linear-gradient(135deg,rgba(200,16,46,.2),rgba(0,14,40,.6))`, borderBottom:"1px solid rgba(255,255,255,.08)", display:"flex", alignItems:"center", gap:20, position:"relative", overflow:"hidden" }}>
-        <div style={{ position:"absolute", top:-50, right:-50, width:180, height:180, borderRadius:"50%", background:`radial-gradient(circle,${RED}20,transparent 70%)`, filter:"blur(32px)" }} />
+      <div style={{ padding:"14px 24px", flexShrink:0, background:`linear-gradient(135deg,rgba(200,16,46,.2),rgba(0,14,40,.6))`, borderBottom:"1px solid rgba(255,255,255,.08)", display:"flex", alignItems:"center", gap:18, position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute", top:-40, right:-40, width:160, height:160, borderRadius:"50%", background:`radial-gradient(circle,${RED}20,transparent 70%)`, filter:"blur(30px)" }} />
         <div style={{ flex:1, position:"relative", zIndex:2 }}>
-          <div style={{ display:"inline-flex", alignItems:"center", gap:7, padding:"4px 12px", borderRadius:8, background:`${RED}28`, border:`1px solid ${RED}40`, marginBottom:7 }}>
+          <div style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"4px 11px", borderRadius:7, background:`${RED}28`, border:`1px solid ${RED}40`, marginBottom:6 }}>
             <Icon name="star" size={12} color={RED} />
-            <span style={{ fontSize:11, color:RED, fontWeight:700, letterSpacing:1, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>
+            <span style={{ fontSize:10, color:RED, fontWeight:700, letterSpacing:1, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>
               {new Date().toLocaleDateString("fr-FR",{ month:"long", year:"numeric" })}
             </span>
           </div>
           <h2 style={{ fontSize:20, fontWeight:900, color:"#fff", letterSpacing:-.3, margin:0 }}>La Sélection du Mois</h2>
-          {totalPages > 0 && !loading && (
-            <p style={{ fontSize:11, color:"rgba(255,255,255,.45)", marginTop:3 }}>
+          {mode === "ready" && (
+            <p style={{ fontSize:11, color:"rgba(255,255,255,.4)", marginTop:2 }}>
               Pages {spread}–{Math.min(spread+1, totalPages)} / {totalPages}
             </p>
           )}
         </div>
         {/* QR */}
-        <div style={{ position:"relative", zIndex:2, display:"flex", flexDirection:"column", alignItems:"center", gap:7, opacity:vis?1:0, transform:vis?"scale(1)":"scale(.85)", transition:"all .5s .2s cubic-bezier(.22,1,.36,1)" }}>
-          <div style={{ background:"#fff", borderRadius:14, padding:8, boxShadow:"0 0 0 3px rgba(255,255,255,.25), 0 10px 32px rgba(0,0,0,.5)", animation:"qrPulse 3s ease-in-out infinite" }}>
-            <img src={QR_URL} alt="QR" style={{ width:90, height:90, borderRadius:7, display:"block" }} />
+        <div style={{ position:"relative", zIndex:2, display:"flex", flexDirection:"column", alignItems:"center", gap:6, opacity:vis?1:0, transform:vis?"scale(1)":"scale(.85)", transition:"all .5s .2s cubic-bezier(.22,1,.36,1)" }}>
+          <div style={{ background:"#fff", borderRadius:13, padding:7, boxShadow:"0 0 0 3px rgba(255,255,255,.25), 0 8px 28px rgba(0,0,0,.5)", animation:"qrPulse 3s ease-in-out infinite" }}>
+            <img src={QR_URL} alt="QR" style={{ width:88, height:88, borderRadius:6, display:"block" }} />
           </div>
-          <div style={{ display:"flex", alignItems:"center", gap:5, padding:"4px 11px", borderRadius:100, background:"rgba(255,255,255,.15)", border:"1px solid rgba(255,255,255,.3)" }}>
-            <Icon name="download" size={11} color="#fff" />
-            <span style={{ fontSize:9, color:"#fff", fontWeight:700, letterSpacing:1, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>
-              Télécharger le catalogue
-            </span>
+          <div style={{ display:"flex", alignItems:"center", gap:4, padding:"4px 10px", borderRadius:100, background:"rgba(255,255,255,.15)", border:"1px solid rgba(255,255,255,.28)" }}>
+            <Icon name="download" size={10} color="#fff" />
+            <span style={{ fontSize:9, color:"#fff", fontWeight:700, letterSpacing:1, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>Télécharger</span>
           </div>
         </div>
       </div>
 
-      {/* Corps — visionneuse PDF.js */}
-      <div style={{ flex:1, background:"#0d1117", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", overflow:"hidden", position:"relative" }}>
-        {loading && !error && (
+      {/* Corps */}
+      <div style={{ flex:1, background:"#1a1a2e", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", overflow:"hidden", position:"relative" }}>
+
+        {/* Chargement */}
+        {mode === "loading" && (
           <div style={{ textAlign:"center" }}>
-            <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:16 }}>
+            <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:14 }}>
               {[RED,"#4A7FB5","#14B8A6","#E8C840","#7D9B76","#C67B5C"].map((c,i) => (
                 <div key={i} style={{ width:10, height:10, borderRadius:"50%", background:c, animation:`float .9s ${i*.12}s ease-in-out infinite` }} />
               ))}
             </div>
-            <p style={{ color:"rgba(255,255,255,.5)", fontSize:14 }}>Chargement du catalogue…</p>
+            <p style={{ color:"rgba(255,255,255,.45)", fontSize:13 }}>Chargement du catalogue…</p>
           </div>
         )}
-        {error && (
-          <div style={{ textAlign:"center", padding:32 }}>
-            <p style={{ color:"rgba(255,100,100,.8)", fontSize:15, marginBottom:20 }}>{error}</p>
-            <a href={PDF_URL} target="_blank" rel="noopener noreferrer" style={{ display:"inline-flex", alignItems:"center", gap:9, padding:"13px 28px", borderRadius:13, background:`linear-gradient(135deg,${RED},#FF2D55)`, color:"#fff", textDecoration:"none", fontSize:14, fontWeight:700 }}>
-              <Icon name="download" size={17} color="#fff" /> Ouvrir le PDF
+
+        {/* Erreur */}
+        {mode === "error" && (
+          <div style={{ textAlign:"center", padding:32, display:"flex", flexDirection:"column", alignItems:"center", gap:22 }}>
+            <div style={{ background:"#fff", borderRadius:20, padding:14, boxShadow:"0 0 0 4px rgba(255,255,255,.2), 0 16px 50px rgba(0,0,0,.6)" }}>
+              <img src={QR_URL} alt="QR" style={{ width:170, height:170, borderRadius:12, display:"block" }} />
+            </div>
+            <p style={{ fontSize:18, fontWeight:800, color:"#fff" }}>Scannez pour voir le catalogue</p>
+            <a href={PDF_URL} target="_blank" rel="noopener noreferrer"
+              style={{ display:"flex", alignItems:"center", gap:10, padding:"13px 30px", borderRadius:13, background:`linear-gradient(135deg,${RED},#FF2D55)`, color:"#fff", textDecoration:"none", fontSize:15, fontWeight:700, boxShadow:`0 8px 26px ${RED}55` }}>
+              <Icon name="download" size={18} color="#fff" /> Ouvrir le PDF
             </a>
           </div>
         )}
-        {!loading && !error && (
+
+        {/* Mode livre — 2 pages côte à côte */}
+        {mode === "ready" && (
           <>
-            {/* Deux pages côte à côte — mode livre */}
-            <div style={{ display:"flex", gap:4, alignItems:"flex-start", justifyContent:"center", overflow:"auto", width:"100%", height:"100%", padding:"16px 8px" }}>
-              <canvas ref={leftRef}  style={{ boxShadow:"4px 0 20px rgba(0,0,0,.6)", borderRadius:"2px 0 0 2px", flexShrink:0 }} />
+            <div style={{
+              display:"flex", gap:2, alignItems:"flex-start", justifyContent:"center",
+              overflow:"auto", width:"100%", height:"100%", padding:"16px 8px 56px",
+            }}>
+              {/* Page gauche */}
+              <canvas ref={leftRef} style={{
+                flexShrink:0, maxWidth:"49%",
+                boxShadow:"6px 0 24px rgba(0,0,0,.7)",
+                borderRadius:"3px 0 0 3px",
+              }} />
+              {/* Page droite */}
               {spread + 1 <= totalPages && (
-                <canvas ref={rightRef} style={{ boxShadow:"-4px 0 20px rgba(0,0,0,.6)", borderRadius:"0 2px 2px 0", flexShrink:0 }} />
+                <canvas ref={rightRef} style={{
+                  flexShrink:0, maxWidth:"49%",
+                  boxShadow:"-6px 0 24px rgba(0,0,0,.7)",
+                  borderRadius:"0 3px 3px 0",
+                }} />
               )}
             </div>
-            {/* Navigation */}
-            <div style={{ position:"absolute", bottom:16, left:"50%", transform:"translateX(-50%)", display:"flex", alignItems:"center", gap:12, background:"rgba(0,0,0,.6)", backdropFilter:"blur(10px)", borderRadius:100, padding:"8px 20px", border:"1px solid rgba(255,255,255,.12)" }}>
-              <button onClick={prevSpread} disabled={!canPrev} style={{ background:"none", border:"none", cursor:canPrev?"pointer":"not-allowed", opacity:canPrev?1:.3, color:"#fff", display:"flex", alignItems:"center", padding:"4px 8px", borderRadius:8 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+
+            {/* Barre navigation */}
+            <div style={{
+              position:"absolute", bottom:14, left:"50%", transform:"translateX(-50%)",
+              display:"flex", alignItems:"center", gap:8,
+              background:"rgba(0,0,0,.75)", backdropFilter:"blur(12px)",
+              borderRadius:100, padding:"7px 16px",
+              border:"1px solid rgba(255,255,255,.14)",
+            }}>
+              {/* Aller à la première */}
+              <button onClick={() => setSpread(1)} disabled={!canPrev}
+                style={{ background:"none", border:"none", cursor:canPrev?"pointer":"not-allowed", opacity:canPrev?1:.3, color:"#fff", display:"flex", padding:"3px 6px" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 17l-5-5 5-5"/><path d="M18 17l-5-5 5-5"/></svg>
               </button>
-              <span style={{ fontSize:12, color:"rgba(255,255,255,.7)", fontFamily:"'JetBrains Mono',monospace", minWidth:80, textAlign:"center" }}>
-                {spread} – {Math.min(spread+1, totalPages)} / {totalPages}
+              <button onClick={() => setSpread(s => Math.max(1, s-2))} disabled={!canPrev}
+                style={{ background:"none", border:"none", cursor:canPrev?"pointer":"not-allowed", opacity:canPrev?1:.3, color:"#fff", display:"flex", padding:"3px 6px" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <span style={{ fontSize:12, color:"rgba(255,255,255,.75)", fontFamily:"'JetBrains Mono',monospace", minWidth:100, textAlign:"center" }}>
+                {spread}–{Math.min(spread+1, totalPages)} / {totalPages}
               </span>
-              <button onClick={nextSpread} disabled={!canNext} style={{ background:"none", border:"none", cursor:canNext?"pointer":"not-allowed", opacity:canNext?1:.3, color:"#fff", display:"flex", alignItems:"center", padding:"4px 8px", borderRadius:8 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              <button onClick={() => setSpread(s => Math.min(totalPages % 2 === 0 ? totalPages-1 : totalPages, s+2))} disabled={!canNext}
+                style={{ background:"none", border:"none", cursor:canNext?"pointer":"not-allowed", opacity:canNext?1:.3, color:"#fff", display:"flex", padding:"3px 6px" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+              {/* Aller à la dernière */}
+              <button onClick={() => setSpread(totalPages % 2 === 0 ? totalPages-1 : totalPages)} disabled={!canNext}
+                style={{ background:"none", border:"none", cursor:canNext?"pointer":"not-allowed", opacity:canNext?1:.3, color:"#fff", display:"flex", padding:"3px 6px" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 17l5-5-5-5"/><path d="M6 17l5-5-5-5"/></svg>
               </button>
             </div>
           </>
@@ -448,7 +479,6 @@ const SelectionMois = () => {
     </div>
   );
 };
-
 // ─── PAGE : SITE WEB ───────────────────────────────────────────────
 const SiteWeb = ({ url }: { url:string }) => {
   const [loading, setLoading] = useState(true);
