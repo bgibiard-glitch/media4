@@ -18,7 +18,7 @@ const PARTNERS = [
 ];
 
 const VIDEO_MP4 = "https://media4-xues.vercel.app/fondecran.mp4";
-const PDF_URL   = "https://media4-xues.vercel.app/pdf3.pdf";
+const PDF_URL   = "https://media4-xues.vercel.app/pdf.pdf";
 const QR_URL    = "https://media4-xues.vercel.app/qrcodepdf.png";
 const LOGO_URL  = "https://media4-duplicated-z3xl.bolt.host/logo.png";
 
@@ -154,9 +154,10 @@ const VideoBackground = () => {
 interface BtnConfig { id:string; label:string; sub:string; icon:string; accent:string; gradient:string; type:string; url?:string; bgImage:string; }
 
 const BTNS: BtnConfig[] = [
-  { id:"site",         label:"Site Web Unikalo",        sub:"Explorez notre univers",         icon:"web",      accent:"#4A7FB5", gradient:"linear-gradient(135deg,#4A7FB5,#6BA3D6)", type:"web",      url:"https://unikalo.com",                                         bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
-  { id:"selection",    label:"La Sélection du Mois",    sub:"Découvrez nos coups de cœur",    icon:"star",     accent:RED,       gradient:`linear-gradient(135deg,${RED},#FF2D55)`,  type:"pdf",                                                                         bgImage:"https://media4-xues.vercel.app/laselection.png" },
-  { id:"partenaires",  label:"Nos Partenaires du Jour", sub:"L'excellence au quotidien",      icon:"partners", accent:"#14B8A6", gradient:"linear-gradient(135deg,#0D9488,#14B8A6)",type:"partners",                                                                    bgImage:"https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80" },
+  { id:"nuances",      label:"Site Web : Nuances Unikalo", sub:"Découvrez nos nuances de couleurs", icon:"web",      accent:"#7D5FB5", gradient:"linear-gradient(135deg,#7D5FB5,#A87FD6)", type:"web",      url:"https://nuances-unikalo.com",                                 bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
+  { id:"site",         label:"Site Web : Unikalo",         sub:"Explorez notre univers",            icon:"web",      accent:"#4A7FB5", gradient:"linear-gradient(135deg,#4A7FB5,#6BA3D6)", type:"web",      url:"https://unikalo.com",                                         bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
+  { id:"selection",    label:"La Sélection du Mois",       sub:"Découvrez nos coups de cœur",       icon:"star",     accent:RED,       gradient:`linear-gradient(135deg,${RED},#FF2D55)`,  type:"pdf",                                                                         bgImage:"https://media4-xues.vercel.app/laselection.png" },
+  { id:"partenaires",  label:"Nos Partenaires du Jour",    sub:"L'excellence au quotidien",         icon:"partners", accent:"#14B8A6", gradient:"linear-gradient(135deg,#0D9488,#14B8A6)",type:"partners",                                                                    bgImage:"https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80" },
 ];
 
 // ─── HOME ─────────────────────────────────────────────────────────
@@ -292,36 +293,83 @@ const Shell = ({ btn, onHome, children }: { btn:BtnConfig; onHome:()=>void; chil
   </div>
 );
 
-// ─── PAGE : SÉLECTION PDF ──────────────────────────────────────────
-// Iframe directe Vercel (primary) → Google Docs Viewer (fallback auto)
+// ─── PAGE : SÉLECTION PDF — PDF.js mode livre 2 pages ─────────────
+// iPhone/Android : scale calculé pour que 2 pages tiennent en largeur
 const SelectionMois = () => {
-  const [vis,    setVis]   = useState(false);
-  const [src,    setSrc]   = useState(PDF_URL);
-  const [loaded, setLoaded] = useState(false);
-  const [tries,  setTries]  = useState(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [vis,        setVis]    = useState(false);
+  const [mode,       setMode]   = useState<"loading"|"ready"|"error">("loading");
+  const [totalPages, setTotal]  = useState(0);
+  const [spread,     setSpread] = useState(1);
+  const leftRef  = useRef<HTMLCanvasElement>(null);
+  const rightRef = useRef<HTMLCanvasElement>(null);
+  const pdfRef   = useRef<any>(null);
 
   useEffect(() => {
     setTimeout(() => setVis(true), 80);
-    // Si l'iframe ne charge pas en 10s → bascule sur Google Docs Viewer
-    timerRef.current = setTimeout(() => {
-      if (!loaded && tries === 0) {
-        setTries(1);
-        setLoaded(false);
-        setSrc(`https://docs.google.com/viewer?url=${encodeURIComponent(PDF_URL)}&embedded=true`);
-        // 2ème timeout : si Google Docs échoue aussi → QR
-        timerRef.current = setTimeout(() => {
-          if (!loaded) setTries(2);
-        }, 12000);
-      }
-    }, 10000);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+
+    const load = () => {
+      const lib = (window as any).pdfjsLib;
+      lib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      lib.getDocument({ url: PDF_URL, withCredentials: false })
+        .promise
+        .then((pdf: any) => {
+          pdfRef.current = pdf;
+          setTotal(pdf.numPages);
+          setMode("ready");
+        })
+        .catch(() => setMode("error"));
+    };
+
+    const existing = document.getElementById("pdfjs-script");
+    if (existing) {
+      (window as any).pdfjsLib ? load() : existing.addEventListener("load", load);
+    } else {
+      const s = document.createElement("script");
+      s.id = "pdfjs-script";
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+      s.onload  = load;
+      s.onerror = () => setMode("error");
+      document.head.appendChild(s);
+    }
   }, []);
 
-  const onLoad = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    setLoaded(true);
-  };
+  const renderPage = useCallback(async (num: number, canvas: HTMLCanvasElement | null) => {
+    if (!canvas || !pdfRef.current) return;
+    const ctx = canvas.getContext("2d");
+    if (num < 1 || num > (pdfRef.current?.numPages ?? 0)) {
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.width  = 0;
+      canvas.height = 0;
+      return;
+    }
+    const page = await pdfRef.current.getPage(num);
+    const vp0  = page.getViewport({ scale: 1 });
+
+    // Calcul du scale pour tenir en écran :
+    // - hauteur max = hauteur dispo - header (~130px)
+    // - largeur max = (largeur écran - gap) / 2  → pour 2 pages côte à côte
+    const hasRight  = num !== totalPages || totalPages % 2 === 0;
+    const maxW      = (window.innerWidth - 8) / (hasRight ? 2 : 1);
+    const maxH      = Math.max(200, window.innerHeight - 180);
+    const scaleW    = maxW / vp0.width;
+    const scaleH    = maxH / vp0.height;
+    const scale     = Math.min(scaleW, scaleH);
+
+    const vp        = page.getViewport({ scale });
+    canvas.width    = vp.width;
+    canvas.height   = vp.height;
+    await page.render({ canvasContext: canvas.getContext("2d")!, viewport: vp }).promise;
+  }, [totalPages]);
+
+  useEffect(() => {
+    if (mode !== "ready") return;
+    renderPage(spread,     leftRef.current);
+    renderPage(spread + 1, rightRef.current);
+  }, [spread, mode, renderPage]);
+
+  const canPrev = spread > 1;
+  const canNext = spread + 1 <= totalPages;
 
   return (
     <div style={{ height:"100%", display:"flex", flexDirection:"column", background:"rgba(0,6,20,.85)" }}>
@@ -337,7 +385,11 @@ const SelectionMois = () => {
             </span>
           </div>
           <h2 style={{ fontSize:20, fontWeight:900, color:"#fff", letterSpacing:-.3, margin:0 }}>La Sélection du Mois</h2>
-          <p style={{ fontSize:11, color:"rgba(255,255,255,.4)", marginTop:2 }}>Nos produits coup de cœur sélectionnés par nos experts</p>
+          {mode === "ready" && (
+            <p style={{ fontSize:11, color:"rgba(255,255,255,.4)", marginTop:2 }}>
+              Pages {spread}–{Math.min(spread+1, totalPages)} / {totalPages}
+            </p>
+          )}
         </div>
         {/* QR cliquable */}
         <div style={{ position:"relative", zIndex:2, display:"flex", flexDirection:"column", alignItems:"center", gap:6, opacity:vis?1:0, transform:vis?"scale(1)":"scale(.85)", transition:"all .5s .2s cubic-bezier(.22,1,.36,1)" }}>
@@ -356,45 +408,88 @@ const SelectionMois = () => {
       </div>
 
       {/* Corps */}
-      <div style={{ flex:1, position:"relative", background:"#f1f3f4" }}>
+      <div style={{ flex:1, background:"#1a1a2e", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", overflow:"hidden", position:"relative" }}>
 
-        {/* Spinner tant que pas chargé */}
-        {!loaded && tries < 2 && (
-          <div style={{ position:"absolute", inset:0, background:"#1a1a2e", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16, zIndex:2, pointerEvents:"none" }}>
-            <div style={{ display:"flex", gap:6 }}>
+        {/* Chargement */}
+        {mode === "loading" && (
+          <div style={{ textAlign:"center" }}>
+            <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:14 }}>
               {[RED,"#4A7FB5","#14B8A6","#E8C840","#7D9B76","#C67B5C"].map((c,i) => (
                 <div key={i} style={{ width:10, height:10, borderRadius:"50%", background:c, animation:`float .9s ${i*.12}s ease-in-out infinite` }} />
               ))}
             </div>
-            <p style={{ color:"rgba(255,255,255,.45)", fontSize:13 }}>
-              {tries === 0 ? "Chargement du catalogue…" : "Connexion en cours…"}
-            </p>
+            <p style={{ color:"rgba(255,255,255,.45)", fontSize:13 }}>Chargement du catalogue…</p>
           </div>
         )}
 
-        {/* Fallback final : QR + lien direct */}
-        {tries >= 2 && (
-          <div style={{ position:"absolute", inset:0, background:"#1a1a2e", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:24, padding:36, textAlign:"center", zIndex:3 }}>
-            <div style={{ background:"#fff", borderRadius:20, padding:14, boxShadow:"0 0 0 4px rgba(255,255,255,.2), 0 16px 50px rgba(0,0,0,.6)", animation:"qrPulse 3s ease-in-out infinite" }}>
-              <img src={QR_URL} alt="QR" style={{ width:180, height:180, borderRadius:12, display:"block" }} />
+        {/* Erreur → QR + lien direct */}
+        {mode === "error" && (
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:22, padding:32, textAlign:"center" }}>
+            <div style={{ background:"#fff", borderRadius:20, padding:14, boxShadow:"0 0 0 4px rgba(255,255,255,.2), 0 16px 50px rgba(0,0,0,.6)" }}>
+              <img src={QR_URL} alt="QR" style={{ width:170, height:170, borderRadius:12, display:"block" }} />
             </div>
-            <p style={{ fontSize:19, fontWeight:800, color:"#fff" }}>Scannez pour voir le catalogue</p>
+            <p style={{ fontSize:18, fontWeight:800, color:"#fff" }}>Scannez pour voir le catalogue</p>
             <a href={PDF_URL} target="_blank" rel="noopener noreferrer"
-              style={{ display:"flex", alignItems:"center", gap:10, padding:"14px 32px", borderRadius:14, background:`linear-gradient(135deg,${RED},#FF2D55)`, color:"#fff", textDecoration:"none", fontSize:15, fontWeight:700, boxShadow:`0 8px 26px ${RED}55` }}>
+              style={{ display:"flex", alignItems:"center", gap:10, padding:"13px 30px", borderRadius:13, background:`linear-gradient(135deg,${RED},#FF2D55)`, color:"#fff", textDecoration:"none", fontSize:15, fontWeight:700 }}>
               <Icon name="download" size={18} color="#fff" /> Ouvrir le PDF
             </a>
           </div>
         )}
 
-        {/* Iframe principaale */}
-        {tries < 2 && (
-          <iframe
-            key={src}
-            src={src}
-            title="Sélection du mois"
-            onLoad={onLoad}
-            style={{ position:"absolute", inset:0, width:"100%", height:"100%", border:"none", display:"block" }}
-          />
+        {/* Mode livre — 2 pages côte à côte */}
+        {mode === "ready" && (
+          <>
+            <div style={{
+              display:"flex", gap:2, alignItems:"center", justifyContent:"center",
+              width:"100%", height:"100%", padding:"12px 4px 52px",
+              overflow:"hidden",
+            }}>
+              <canvas ref={leftRef} style={{
+                flexShrink:0,
+                boxShadow:"4px 0 20px rgba(0,0,0,.7)",
+                borderRadius:"3px 0 0 3px",
+                maxWidth:"50%",
+              }} />
+              {spread + 1 <= totalPages && (
+                <canvas ref={rightRef} style={{
+                  flexShrink:0,
+                  boxShadow:"-4px 0 20px rgba(0,0,0,.7)",
+                  borderRadius:"0 3px 3px 0",
+                  maxWidth:"50%",
+                }} />
+              )}
+            </div>
+
+            {/* Barre navigation */}
+            <div style={{
+              position:"absolute", bottom:12, left:"50%", transform:"translateX(-50%)",
+              display:"flex", alignItems:"center", gap:6,
+              background:"rgba(0,0,0,.8)", backdropFilter:"blur(12px)",
+              borderRadius:100, padding:"7px 14px",
+              border:"1px solid rgba(255,255,255,.14)",
+              whiteSpace:"nowrap",
+            }}>
+              <button onClick={() => setSpread(1)} disabled={!canPrev}
+                style={{ background:"none", border:"none", cursor:canPrev?"pointer":"not-allowed", opacity:canPrev?1:.3, color:"#fff", display:"flex", padding:"2px 5px" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 17l-5-5 5-5"/><path d="M18 17l-5-5 5-5"/></svg>
+              </button>
+              <button onClick={() => setSpread(s => Math.max(1, s-2))} disabled={!canPrev}
+                style={{ background:"none", border:"none", cursor:canPrev?"pointer":"not-allowed", opacity:canPrev?1:.3, color:"#fff", display:"flex", padding:"2px 5px" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <span style={{ fontSize:12, color:"rgba(255,255,255,.75)", fontFamily:"'JetBrains Mono',monospace", minWidth:90, textAlign:"center" }}>
+                {spread}–{Math.min(spread+1,totalPages)} / {totalPages}
+              </span>
+              <button onClick={() => setSpread(s => Math.min(canNext ? s+2 : s, totalPages))} disabled={!canNext}
+                style={{ background:"none", border:"none", cursor:canNext?"pointer":"not-allowed", opacity:canNext?1:.3, color:"#fff", display:"flex", padding:"2px 5px" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+              <button onClick={() => setSpread(totalPages % 2 === 0 ? totalPages-1 : totalPages)} disabled={!canNext}
+                style={{ background:"none", border:"none", cursor:canNext?"pointer":"not-allowed", opacity:canNext?1:.3, color:"#fff", display:"flex", padding:"2px 5px" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 17l5-5-5-5"/><path d="M6 17l5-5-5-5"/></svg>
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>
