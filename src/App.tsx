@@ -18,7 +18,7 @@ const PARTNERS = [
 ];
 
 const VIDEO_MP4 = "https://media4-xues.vercel.app/fondecran.mp4";
-const PDF_URL   = "https://media4-xues.vercel.app/pdf3.pdf";
+const PDF_URL   = "https://media4-xues.vercel.app/pdf.pdf";
 const QR_URL    = "https://media4-xues.vercel.app/qrcodepdf.png";
 const LOGO_URL  = "https://media4-duplicated-z3xl.bolt.host/logo.png";
 
@@ -158,8 +158,8 @@ const BTNS: BtnConfig[] = [
   { id:"partenaires",  label:"Nos Partenaires du Jour", sub:"L'excellence au quotidien",   icon:"partners", accent:"#14B8A6", gradient:"linear-gradient(135deg,#0D9488,#14B8A6)",type:"partners",                                                                    bgImage:"https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80" },
 ];
 const SITE_BTNS = [
-  { id:"nuances", label:"Site web : Nuances Unikalo", sub:"Nos nuances de couleurs", icon:"web" as const, accent:"#7D5FB5", gradient:"linear-gradient(135deg,#7D5FB5,#A87FD6)", url:"https://nuances-unikalo.com", bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
-  { id:"site",    label:"Site web : Unikalo",         sub:"Explorez notre univers",  icon:"web" as const, accent:"#4A7FB5", gradient:"linear-gradient(135deg,#4A7FB5,#6BA3D6)", url:"https://unikalo.com",         bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
+  { id:"nuances", title:"Site web :", name:"Nuances Unikalo", icon:"web" as const, accent:"#7D5FB5", gradient:"linear-gradient(135deg,#7D5FB5,#A87FD6)", url:"https://nuances-unikalo.com", bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
+  { id:"site",    title:"Site web :", name:"Unikalo",         icon:"web" as const, accent:"#4A7FB5", gradient:"linear-gradient(135deg,#4A7FB5,#6BA3D6)", url:"https://unikalo.com",         bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
 ];
 
 // ─── HOME ─────────────────────────────────────────────────────────
@@ -198,7 +198,7 @@ const Home = ({ onSelect }: { onSelect:(b:BtnConfig)=>void }) => {
               <button
                 key={btn.id}
                 className="gbtn"
-                onClick={() => onSelect({ ...btn, type:"web" })}
+                onClick={() => onSelect({ id:btn.id, label:btn.name, sub:btn.title, icon:btn.icon, accent:btn.accent, gradient:btn.gradient, type:"web", url:btn.url, bgImage:btn.bgImage })}
                 style={{
                   flex:1, display:"flex", alignItems:"center",
                   height:118, borderRadius:22, padding:0,
@@ -213,8 +213,8 @@ const Home = ({ onSelect }: { onSelect:(b:BtnConfig)=>void }) => {
                 <div style={{ position:"absolute", inset:0, borderRadius:22, background:"linear-gradient(90deg,rgba(0,4,14,.78) 0%,rgba(0,4,14,.18) 50%,rgba(0,4,14,.40) 100%)" }} />
                 <div style={{ position:"absolute", top:0, left:0, bottom:0, width:5, borderRadius:"22px 0 0 22px", background:btn.gradient, boxShadow:`0 0 22px ${btn.accent}80` }} />
                 <div style={{ position:"relative", zIndex:2, flex:1, paddingLeft:20 }}>
-                  <div style={{ fontSize:16, fontWeight:800, color:"#fff", letterSpacing:-.2, textShadow:"0 2px 14px rgba(0,0,0,.85)", lineHeight:1.2 }}>{btn.label}</div>
-                  <div style={{ fontSize:11, color:"rgba(255,255,255,.75)", marginTop:4, textShadow:"0 1px 6px rgba(0,0,0,.7)" }}>{btn.sub}</div>
+                  <div style={{ fontSize:12, fontWeight:600, color:"rgba(255,255,255,.7)", letterSpacing:.5, textTransform:"uppercase", textShadow:"0 1px 6px rgba(0,0,0,.7)" }}>{btn.title}</div>
+                  <div style={{ fontSize:18, fontWeight:900, color:"#fff", letterSpacing:-.2, textShadow:"0 2px 14px rgba(0,0,0,.85)", lineHeight:1.2, marginTop:2 }}>{btn.name}</div>
                 </div>
                 <div style={{ position:"relative", zIndex:2, marginRight:16, width:36, height:36, borderRadius:10, flexShrink:0, background:"rgba(255,255,255,.1)", border:"1px solid rgba(255,255,255,.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
                   <Icon name="arrow" size={17} color="rgba(255,255,255,.85)" />
@@ -381,9 +381,11 @@ const SelectionMois = () => {
     // Calcul du scale pour tenir en écran :
     // - hauteur max = hauteur dispo - header (~130px)
     // - largeur max = (largeur écran - gap) / 2  → pour 2 pages côte à côte
-    const hasRight  = num !== totalPages || totalPages % 2 === 0;
-    const maxW      = (window.innerWidth - 8) / (hasRight ? 2 : 1);
-    const maxH      = Math.max(200, window.innerHeight - 180);
+    const hasRight  = spread + 1 <= (pdfRef.current?.numPages ?? 0);
+    const availW    = window.innerWidth  - 16;
+    const availH    = window.innerHeight - 240; // header + nav + padding
+    const maxW      = availW / (hasRight ? 2 : 1);
+    const maxH      = Math.max(200, availH);
     const scaleW    = maxW / vp0.width;
     const scaleH    = maxH / vp0.height;
     const scale     = Math.min(scaleW, scaleH);
@@ -573,7 +575,7 @@ const Partenaires = () => {
       <Strip h={3} />
 
       {/* GRILLE — logos directs, aucun encadrement, aucune carte */}
-      <div style={{ padding:"20px 24px", display:"flex", flexWrap:"wrap", gap:36, justifyContent:"center", alignItems:"center" }}>
+      <div style={{ padding:"20px 24px", display:"flex", flexDirection:"column", gap:28, alignItems:"center" }}>
         {PARTNERS.map((p,i) => (
           <a
             key={i}
@@ -582,8 +584,7 @@ const Partenaires = () => {
             rel="noopener noreferrer"
             className="pcard"
             style={{
-              flex:"1 1 calc(50% - 20px)",
-              minWidth:220,
+              width:"100%", maxWidth:500,
               display:"flex", flexDirection:"column", alignItems:"center", gap:14,
               opacity: vis ? 1 : 0,
               transform: vis ? "translateY(0)" : "translateY(14px)",
