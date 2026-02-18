@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { ReactNode, CSSProperties } from "react";
 
-const B = { red: "#C8102E", white: "#FFFFFF" };
+const RED  = "#C8102E";
 
 const COLORS = [
   "#1B2A4A","#4A7FB5","#7D9B76","#C67B5C","#D4A0A0",
@@ -10,11 +10,11 @@ const COLORS = [
 ];
 
 const PARTNERS = [
-  { name: "Licef",               logo: "https://media4-xues.vercel.app/partenaires/1.png", url: "https://www.licef.fr/",                    desc: "Enduits & mortiers"     },
-  { name: "EF Factory",          logo: "https://media4-xues.vercel.app/partenaires/2.png", url: "https://ef-factory.com/fr/",                desc: "Mobilier & agencement"  },
-  { name: "Couleurs & Matières", logo: "https://media4-xues.vercel.app/partenaires/3.png", url: "https://www.couleurs-et-matieres.com/",     desc: "Peintures décoratives"  },
-  { name: "La Chaux Pouzzolanique", logo: "https://media4-xues.vercel.app/partenaires/4.png", url: "https://www.chaux-tilia.fr/",            desc: "Chaux naturelle"        },
-  { name: "Euromair",            logo: "https://media4-xues.vercel.app/partenaires/5.png", url: "https://www.euromair.com/",                 desc: "Matériel de projection"  },
+  { name:"Licef",                  logo:"https://media4-xues.vercel.app/partenaires/1.png", url:"https://www.licef.fr/",                 desc:"Enduits & mortiers"    },
+  { name:"EF Factory",             logo:"https://media4-xues.vercel.app/partenaires/2.png", url:"https://ef-factory.com/fr/",             desc:"Mobilier & agencement" },
+  { name:"Couleurs & Matières",    logo:"https://media4-xues.vercel.app/partenaires/3.png", url:"https://www.couleurs-et-matieres.com/",  desc:"Peintures décoratives"  },
+  { name:"La Chaux Pouzzolanique", logo:"https://media4-xues.vercel.app/partenaires/4.png", url:"https://www.chaux-tilia.fr/",            desc:"Chaux naturelle"        },
+  { name:"Euromair",               logo:"https://media4-xues.vercel.app/partenaires/5.png", url:"https://www.euromair.com/",              desc:"Matériel de projection"  },
 ];
 
 const VIDEO_MP4 = "https://media4-xues.vercel.app/fondecran.mp4";
@@ -25,28 +25,28 @@ const LOGO_URL  = "https://media4-duplicated-z3xl.bolt.host/logo.png";
 const GlobalStyles = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body, #root { width: 100%; height: 100%; overflow: hidden; }
-    body { font-family: 'Outfit', sans-serif; background: #000; }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    html, body, #root { width:100%; height:100%; overflow:hidden; }
+    body { font-family:'Outfit',sans-serif; background:#000; }
 
     @keyframes fadeIn   { from{opacity:0}       to{opacity:1} }
-    @keyframes revealUp { from{opacity:0;transform:translateY(32px) scale(.97);filter:blur(3px)} to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)} }
+    @keyframes revealUp { from{opacity:0;transform:translateY(30px) scale(.97);filter:blur(3px)} to{opacity:1;transform:none;filter:blur(0)} }
     @keyframes shimmer  { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
-    @keyframes float    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
-    @keyframes slideDown{ from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes qrFloat  { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-5px)} }
+    @keyframes float    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    @keyframes slideDown{ from{opacity:0;transform:translateY(-14px)} to{opacity:1;transform:none} }
+    @keyframes qrPulse  { 0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.3)} 50%{box-shadow:0 0 0 8px rgba(255,255,255,0)} }
 
     .gbtn {
       cursor:pointer; position:relative; overflow:hidden;
-      transition:transform .35s cubic-bezier(.4,0,.2,1), box-shadow .35s, border-color .35s;
+      transition:transform .32s cubic-bezier(.4,0,.2,1), box-shadow .32s, border-color .32s;
     }
-    .gbtn:hover { transform:translateY(-5px) scale(1.012)!important; box-shadow:0 24px 60px rgba(0,0,0,.55)!important; border-color:rgba(255,255,255,.28)!important; }
+    .gbtn:hover { transform:translateY(-6px) scale(1.014)!important; box-shadow:0 28px 64px rgba(0,0,0,.6)!important; border-color:rgba(255,255,255,.3)!important; }
     .gbtn:active { transform:scale(.985)!important; transition-duration:.1s; }
-    .gbtn::after { content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(135deg,rgba(255,255,255,.09) 0%,transparent 55%); opacity:0; transition:opacity .35s; }
+    .gbtn::after { content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(135deg,rgba(255,255,255,.1) 0%,transparent 55%); opacity:0; transition:opacity .32s; }
     .gbtn:hover::after { opacity:1; }
 
-    .pcard { transition:all .3s cubic-bezier(.4,0,.2,1); }
-    .pcard:hover { transform:translateY(-8px) scale(1.04); border-color:rgba(255,255,255,.25)!important; box-shadow:0 20px 50px rgba(0,0,0,.45)!important; }
+    .pcard { transition:all .28s cubic-bezier(.4,0,.2,1); }
+    .pcard:hover { transform:translateY(-6px) scale(1.03); border-color:rgba(255,255,255,.28)!important; }
 
     ::-webkit-scrollbar { width:3px; }
     ::-webkit-scrollbar-thumb { background:#C8102E40; border-radius:4px; }
@@ -76,28 +76,64 @@ const Icon = ({ name, size=24, color="currentColor" }: { name:string; size?:numb
   );
 };
 
-// ─── VIDÉO : position absolute + w/h 100% + objectFit cover
-// Fonctionne en portrait ET paysage sans calcul vh/vw
+// ─── VIDÉO — optimisée anti-freeze ──────────────────────────────────
+// - preload="auto" pour bufferiser en avance
+// - Gestion stalled/waiting/error avec retry automatique
+// - objectFit cover natif, pas de calcul vh/vw
 const VideoBackground = () => {
-  const ref = useRef<HTMLVideoElement>(null);
+  const ref   = useRef<HTMLVideoElement>(null);
+  const retry = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
-    v.muted = true;
-    const play = () => v.play().catch(() => {});
-    play();
-    // Retry on first user interaction (iOS/restrictive browsers)
-    document.addEventListener("touchstart", play, { once: true });
-    document.addEventListener("click",      play, { once: true });
+
+    const tryPlay = () => {
+      v.muted = true;
+      v.play().catch(() => {});
+    };
+
+    // Reload + play sur freeze/stall
+    const onStall = () => {
+      if (retry.current) clearTimeout(retry.current);
+      retry.current = setTimeout(() => {
+        const t = v.currentTime;
+        v.load();
+        v.currentTime = t;
+        tryPlay();
+      }, 1500);
+    };
+
+    const onError = () => {
+      if (retry.current) clearTimeout(retry.current);
+      retry.current = setTimeout(() => { v.load(); tryPlay(); }, 3000);
+    };
+
+    v.addEventListener("stalled",  onStall);
+    v.addEventListener("waiting",  onStall);
+    v.addEventListener("error",    onError);
+    document.addEventListener("touchstart", tryPlay, { once: true });
+    document.addEventListener("click",      tryPlay, { once: true });
+
+    tryPlay();
+
+    return () => {
+      v.removeEventListener("stalled", onStall);
+      v.removeEventListener("waiting", onStall);
+      v.removeEventListener("error",   onError);
+      if (retry.current) clearTimeout(retry.current);
+    };
   }, []);
+
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:0, background:"#000" }}>
+    <div style={{ position:"fixed", inset:0, zIndex:0, background:"#111" }}>
       <video
         ref={ref}
         autoPlay
         muted
         loop
         playsInline
+        preload="auto"
         style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }}
       >
         <source src={VIDEO_MP4} type="video/mp4" />
@@ -106,31 +142,16 @@ const VideoBackground = () => {
   );
 };
 
-interface BtnConfig {
-  id:string; label:string; sub:string; icon:string;
-  accent:string; gradient:string; type:string; url?:string; bgImage:string;
-}
+// ─── TYPES & CONFIG BOUTONS ────────────────────────────────────────
+interface BtnConfig { id:string; label:string; sub:string; icon:string; accent:string; gradient:string; type:string; url?:string; bgImage:string; }
 
-// SITE WEB EN PREMIER
 const BTNS: BtnConfig[] = [
-  {
-    id:"site", label:"Site Web Unikalo", sub:"Explorez notre univers",
-    icon:"web", accent:"#4A7FB5", gradient:"linear-gradient(135deg,#4A7FB5,#6BA3D6)",
-    type:"web", url:"https://nuances-unikalo.com",
-    bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png",
-  },
-  {
-    id:"selection", label:"La Sélection du Mois", sub:"Découvrez nos coups de cœur",
-    icon:"star", accent:B.red, gradient:`linear-gradient(135deg,${B.red},#FF2D55)`,
-    type:"pdf", bgImage:"https://media4-xues.vercel.app/laselection.png",
-  },
-  {
-    id:"partenaires", label:"Nos Partenaires", sub:"L'excellence au quotidien",
-    icon:"partners", accent:"#14B8A6", gradient:"linear-gradient(135deg,#0D9488,#14B8A6)",
-    type:"partners", bgImage:"https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80",
-  },
+  { id:"site",         label:"Site Web Unikalo",        sub:"Explorez notre univers",         icon:"web",      accent:"#4A7FB5", gradient:"linear-gradient(135deg,#4A7FB5,#6BA3D6)", type:"web",      url:"https://unikalo.com",                                         bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
+  { id:"selection",    label:"La Sélection du Mois",    sub:"Découvrez nos coups de cœur",    icon:"star",     accent:RED,       gradient:`linear-gradient(135deg,${RED},#FF2D55)`,  type:"pdf",                                                                         bgImage:"https://media4-xues.vercel.app/laselection.png" },
+  { id:"partenaires",  label:"Nos Partenaires du Jour", sub:"L'excellence au quotidien",      icon:"partners", accent:"#14B8A6", gradient:"linear-gradient(135deg,#0D9488,#14B8A6)",type:"partners",                                                                    bgImage:"https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80" },
 ];
 
+// ─── HOME ─────────────────────────────────────────────────────────
 const Home = ({ onSelect }: { onSelect:(b:BtnConfig)=>void }) => {
   const [ready, setReady] = useState(false);
   useEffect(() => { const t = setTimeout(()=>setReady(true), 100); return ()=>clearTimeout(t); }, []);
@@ -139,25 +160,21 @@ const Home = ({ onSelect }: { onSelect:(b:BtnConfig)=>void }) => {
     <div style={{ position:"relative", zIndex:10, height:"100%", display:"flex", flexDirection:"column" }}>
       <Strip h={5} style={{ flexShrink:0 }} />
 
-      {/* ZONE PRINCIPALE — space-between étire sur toute la hauteur */}
       <div style={{
-        flex:1, display:"flex", flexDirection:"column",
+        flex:1,
+        display:"flex", flexDirection:"column",
         justifyContent:"space-between",
-        padding:"28px 48px 24px",
-        maxWidth:840, width:"100%", margin:"0 auto",
+        padding:"28px 44px 22px",
+        maxWidth:820, width:"100%", margin:"0 auto",
       }}>
 
-        {/* LOGO pleine visibilité */}
-        <div style={{ display:"flex", justifyContent:"center", animation:"revealUp .8s .05s cubic-bezier(.22,1,.36,1) both" }}>
-          <img
-            src={LOGO_URL}
-            alt="Unikalo"
-            style={{ height:88, width:"auto", maxWidth:"52%", objectFit:"contain", opacity:1 }}
-          />
+        {/* LOGO */}
+        <div style={{ display:"flex", justifyContent:"center", animation:"revealUp .7s .05s cubic-bezier(.22,1,.36,1) both" }}>
+          <img src={LOGO_URL} alt="Unikalo" style={{ height:84, width:"auto", maxWidth:"52%", objectFit:"contain", opacity:1 }} />
         </div>
 
-        {/* 3 BOUTONS espacés par le flex space-between du parent */}
-        <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
+        {/* 3 BOUTONS — gap plus grand */}
+        <div style={{ display:"flex", flexDirection:"column", gap:28 }}>
           {BTNS.map((btn, i) => (
             <button
               key={btn.id}
@@ -165,66 +182,67 @@ const Home = ({ onSelect }: { onSelect:(b:BtnConfig)=>void }) => {
               onClick={() => onSelect(btn)}
               style={{
                 display:"flex", alignItems:"center",
-                height:110,
+                height:118,
                 borderRadius:22,
-                background:"rgba(0,4,16,0.36)",
-                backdropFilter:"blur(20px)",
-                WebkitBackdropFilter:"blur(20px)",
-                border:"1px solid rgba(255,255,255,0.16)",
-                boxShadow:"0 6px 30px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,.06)",
+                // fond plus transparent pour voir l'image
+                background:"rgba(0,4,14,0.28)",
+                backdropFilter:"blur(16px)",
+                WebkitBackdropFilter:"blur(16px)",
+                border:"1px solid rgba(255,255,255,0.18)",
+                boxShadow:"0 8px 36px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,.06)",
                 padding:0,
                 opacity: ready ? 1 : 0,
-                transform: ready ? "translateY(0)" : "translateY(42px)",
-                transition:`opacity .6s ${.1+i*.12}s cubic-bezier(.22,1,.36,1), transform .6s ${.1+i*.12}s cubic-bezier(.22,1,.36,1)`,
+                transform: ready ? "translateY(0)" : "translateY(40px)",
+                transition:`opacity .6s ${.1+i*.13}s cubic-bezier(.22,1,.36,1), transform .6s ${.1+i*.13}s cubic-bezier(.22,1,.36,1)`,
               }}
             >
-              <div style={{ position:"absolute", inset:0, borderRadius:22, backgroundImage:`url(${btn.bgImage})`, backgroundSize:"cover", backgroundPosition:"center", opacity:0.28 }} />
-              <div style={{ position:"absolute", inset:0, borderRadius:22, background:"linear-gradient(90deg,rgba(0,4,16,.75) 0%,rgba(0,4,16,.25) 55%,rgba(0,4,16,.48) 100%)" }} />
-              <div style={{ position:"absolute", top:0, left:0, bottom:0, width:5, borderRadius:"22px 0 0 22px", background:btn.gradient, boxShadow:`0 0 20px ${btn.accent}70` }} />
-              <div style={{ position:"relative", zIndex:2, flex:1, paddingLeft:38 }}>
-                <div style={{ fontSize:23, fontWeight:800, color:"#fff", letterSpacing:-.3, textShadow:"0 2px 12px rgba(0,0,0,.7)", lineHeight:1.2 }}>{btn.label}</div>
-                <div style={{ fontSize:13, color:"rgba(255,255,255,.6)", marginTop:5 }}>{btn.sub}</div>
+              {/* IMAGE DE FOND — beaucoup plus visible */}
+              <div style={{ position:"absolute", inset:0, borderRadius:22, backgroundImage:`url(${btn.bgImage})`, backgroundSize:"cover", backgroundPosition:"center", opacity:0.55 }} />
+              {/* Overlay léger juste pour lisibilité du texte */}
+              <div style={{ position:"absolute", inset:0, borderRadius:22, background:"linear-gradient(90deg,rgba(0,4,14,.78) 0%,rgba(0,4,14,.18) 50%,rgba(0,4,14,.40) 100%)" }} />
+              {/* Barre colorée gauche */}
+              <div style={{ position:"absolute", top:0, left:0, bottom:0, width:5, borderRadius:"22px 0 0 22px", background:btn.gradient, boxShadow:`0 0 22px ${btn.accent}80` }} />
+              {/* Texte */}
+              <div style={{ position:"relative", zIndex:2, flex:1, paddingLeft:36 }}>
+                <div style={{ fontSize:24, fontWeight:800, color:"#fff", letterSpacing:-.3, textShadow:"0 2px 14px rgba(0,0,0,.85)", lineHeight:1.2 }}>{btn.label}</div>
+                <div style={{ fontSize:13, color:"rgba(255,255,255,.75)", marginTop:5, textShadow:"0 1px 6px rgba(0,0,0,.7)" }}>{btn.sub}</div>
               </div>
-              <div style={{ position:"relative", zIndex:2, marginRight:30, width:42, height:42, borderRadius:12, flexShrink:0, background:"rgba(255,255,255,.07)", border:"1px solid rgba(255,255,255,.13)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                <Icon name="arrow" size={20} color="rgba(255,255,255,.7)" />
+              {/* Flèche */}
+              <div style={{ position:"relative", zIndex:2, marginRight:28, width:42, height:42, borderRadius:12, flexShrink:0, background:"rgba(255,255,255,.1)", border:"1px solid rgba(255,255,255,.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <Icon name="arrow" size={20} color="rgba(255,255,255,.85)" />
               </div>
             </button>
           ))}
         </div>
 
-        {/* SLOGAN — tout sur une seule ligne, taille ajustée */}
-        <div style={{ textAlign:"center", animation:"revealUp 1s .65s cubic-bezier(.22,1,.36,1) both" }}>
-          <h1 style={{ fontSize:20, fontWeight:800, lineHeight:1, color:"#fff", whiteSpace:"nowrap", textShadow:"0 3px 24px rgba(0,0,0,.65)" }}>
-            Unikalo,{" "}
-            <span style={{
-              background:`linear-gradient(135deg,${B.red},#FF4D6A,#FF2D55,${B.red})`,
-              backgroundSize:"300% auto",
-              WebkitBackgroundClip:"text",
-              WebkitTextFillColor:"transparent",
-              animation:"shimmer 3s linear infinite",
-            }}>1er fabricant français indépendant</span>
+        {/* SLOGAN — gros, une seule ligne, U en rouge */}
+        <div style={{ textAlign:"center", animation:"revealUp 1s .62s cubic-bezier(.22,1,.36,1) both" }}>
+          <h1 style={{ fontSize:22, fontWeight:900, lineHeight:1, color:"#fff", whiteSpace:"nowrap", textShadow:"0 3px 20px rgba(0,0,0,.8)", letterSpacing:-.2 }}>
+            <span style={{ color:RED }}>U</span>nikalo,{" "}
+            <span style={{ background:`linear-gradient(135deg,${RED},#FF4D6A,#FF2D55,${RED})`, backgroundSize:"300% auto", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", animation:"shimmer 3s linear infinite" }}>
+              1er fabricant français indépendant
+            </span>
             {" "}de peintures bâtiment
           </h1>
-          {/* "Depuis 1936" bien visible */}
-          <div style={{ marginTop:10, fontSize:13, fontWeight:600, color:"rgba(255,255,255,.65)", letterSpacing:4, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>
+          <div style={{ marginTop:10, fontSize:14, fontWeight:700, color:"rgba(255,255,255,.75)", letterSpacing:4, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>
             Fabricant de peintures depuis 1936
           </div>
         </div>
       </div>
 
-      {/* FOOTER — Propulsé par MEDIA4 bien visible */}
+      {/* FOOTER */}
       <footer style={{
         position:"relative", zIndex:20, flexShrink:0,
-        background:"rgba(0,8,24,.55)", backdropFilter:"blur(14px)",
-        borderTop:"1px solid rgba(255,255,255,.1)",
+        background:"rgba(0,6,20,.6)", backdropFilter:"blur(14px)",
+        borderTop:"1px solid rgba(255,255,255,.12)",
         padding:"13px 44px", display:"flex", alignItems:"center", justifyContent:"space-between",
         animation:"fadeIn .6s .9s ease both",
       }}>
-        <span style={{ fontSize:12, color:"rgba(255,255,255,.7)", letterSpacing:2, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace", fontWeight:600 }}>
+        <span style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,.75)", letterSpacing:2, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>
           Propulsé par <strong style={{ color:"#fff" }}>MEDIA4 🚀</strong>
         </span>
-        <img src={LOGO_URL} alt="Unikalo" style={{ height:16, opacity:.3 }} onError={(e)=>{ (e.target as HTMLElement).style.display="none"; }} />
-        <span style={{ fontSize:11, color:"rgba(255,255,255,.45)", fontFamily:"'JetBrains Mono',monospace" }}>
+        <img src={LOGO_URL} alt="" style={{ height:16, opacity:.3 }} onError={(e)=>{ (e.target as HTMLElement).style.display="none"; }} />
+        <span style={{ fontSize:11, color:"rgba(255,255,255,.5)", fontFamily:"'JetBrains Mono',monospace" }}>
           {new Date().toLocaleDateString("fr-FR",{ day:"numeric", month:"long", year:"numeric" })}
         </span>
       </footer>
@@ -233,87 +251,95 @@ const Home = ({ onSelect }: { onSelect:(b:BtnConfig)=>void }) => {
   );
 };
 
+// ─── SHELL ─────────────────────────────────────────────────────────
 const Shell = ({ btn, onHome, children }: { btn:BtnConfig; onHome:()=>void; children:ReactNode }) => (
   <div style={{ position:"relative", zIndex:10, height:"100%", display:"flex", flexDirection:"column" }}>
-    <nav style={{
-      background:"rgba(0,8,24,.6)", backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)",
-      borderBottom:"1px solid rgba(255,255,255,.09)",
-      padding:"0 30px", display:"flex", alignItems:"center", gap:14,
-      height:62, flexShrink:0, animation:"slideDown .4s ease both",
-    }}>
-      <button onClick={onHome} style={{ width:40, height:40, borderRadius:11, border:"1px solid rgba(255,255,255,.12)", background:"rgba(255,255,255,.06)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-        <Icon name="back" size={18} color="rgba(255,255,255,.65)" />
+    <nav style={{ background:"rgba(0,6,20,.65)", backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)", borderBottom:"1px solid rgba(255,255,255,.1)", padding:"0 28px", display:"flex", alignItems:"center", gap:14, height:60, flexShrink:0, animation:"slideDown .4s ease both" }}>
+      <button onClick={onHome} style={{ width:40, height:40, borderRadius:11, border:"1px solid rgba(255,255,255,.14)", background:"rgba(255,255,255,.07)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <Icon name="back" size={17} color="rgba(255,255,255,.7)" />
       </button>
-      <div style={{ width:1, height:26, background:"rgba(255,255,255,.1)" }} />
+      <div style={{ width:1, height:24, background:"rgba(255,255,255,.12)" }} />
       <div style={{ display:"flex", alignItems:"center", gap:11, flex:1 }}>
-        <div style={{ width:34, height:34, borderRadius:10, background:btn.gradient, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 4px 14px ${btn.accent}35` }}>
-          <Icon name={btn.icon} size={17} color="#fff" />
+        <div style={{ width:33, height:33, borderRadius:10, background:btn.gradient, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 4px 14px ${btn.accent}40` }}>
+          <Icon name={btn.icon} size={16} color="#fff" />
         </div>
         <div>
           <div style={{ fontSize:15, fontWeight:700, color:"#fff" }}>{btn.label}</div>
-          <div style={{ fontSize:11, color:"rgba(255,255,255,.42)" }}>{btn.sub}</div>
+          <div style={{ fontSize:11, color:"rgba(255,255,255,.45)" }}>{btn.sub}</div>
         </div>
       </div>
-      <img src={LOGO_URL} alt="Logo" style={{ height:24 }} onError={(e)=>{ (e.target as HTMLElement).style.display="none"; }} />
-      <button onClick={onHome} style={{ padding:"9px 20px", borderRadius:11, border:"none", background:B.red, cursor:"pointer", color:"#fff", fontSize:13, fontWeight:700, display:"flex", alignItems:"center", gap:7, boxShadow:`0 4px 18px ${B.red}45` }}>
+      <img src={LOGO_URL} alt="" style={{ height:24 }} onError={(e)=>{ (e.target as HTMLElement).style.display="none"; }} />
+      <button onClick={onHome} style={{ padding:"9px 20px", borderRadius:11, border:"none", background:RED, cursor:"pointer", color:"#fff", fontSize:13, fontWeight:700, display:"flex", alignItems:"center", gap:7, boxShadow:`0 4px 18px ${RED}50` }}>
         <Icon name="home" size={16} color="#fff" /> Accueil
       </button>
     </nav>
     <div style={{ height:3, background:btn.gradient, flexShrink:0 }} />
-    <div style={{ flex:1, overflow:"hidden", animation:"fadeIn .4s .1s ease both" }}>{children}</div>
-    <div style={{ background:"rgba(0,8,24,.55)", backdropFilter:"blur(12px)", borderTop:"1px solid rgba(255,255,255,.08)", padding:"9px 30px", display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
-      <span style={{ fontSize:11, color:"rgba(255,255,255,.6)", letterSpacing:2, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace", fontWeight:600 }}>
-        Propulsé par <strong style={{ color:"rgba(255,255,255,.85)" }}>MEDIA4 🚀</strong>
+    <div style={{ flex:1, overflow:"hidden", animation:"fadeIn .4s .08s ease both" }}>{children}</div>
+    <div style={{ background:"rgba(0,6,20,.6)", backdropFilter:"blur(12px)", borderTop:"1px solid rgba(255,255,255,.1)", padding:"9px 28px", display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
+      <span style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,.7)", letterSpacing:2, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>
+        Propulsé par <strong style={{ color:"#fff" }}>MEDIA4 🚀</strong>
       </span>
-      <img src={LOGO_URL} alt="Unikalo" style={{ height:14, opacity:.25 }} onError={(e)=>{ (e.target as HTMLElement).style.display="none"; }} />
       <Strip h={9} style={{ width:120, borderRadius:4, overflow:"hidden" }} />
     </div>
   </div>
 );
 
+// ─── PAGE : SÉLECTION PDF ──────────────────────────────────────────
 const SelectionMois = () => {
-  const [vis, setVis]         = useState(false);
+  const [vis,       setVis]       = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
-  useEffect(() => {
-    setTimeout(()=>setVis(true), 100);
-    setIsAndroid(/Android/i.test(navigator.userAgent));
-  }, []);
+  useEffect(() => { setTimeout(()=>setVis(true), 80); setIsAndroid(/Android/i.test(navigator.userAgent)); }, []);
+
   return (
-    <div style={{ height:"100%", display:"flex", flexDirection:"column", background:"rgba(0,8,24,.65)" }}>
-      <div style={{ padding:"20px 34px", flexShrink:0, background:`linear-gradient(135deg,rgba(200,16,46,.15),rgba(0,16,44,.55))`, borderBottom:"1px solid rgba(255,255,255,.07)", display:"flex", alignItems:"center", gap:26, position:"relative", overflow:"hidden" }}>
-        <div style={{ position:"absolute", top:-50, right:-50, width:200, height:200, borderRadius:"50%", background:`radial-gradient(circle,${B.red}18,transparent 70%)`, filter:"blur(38px)" }} />
+    <div style={{ height:"100%", display:"flex", flexDirection:"column", background:"rgba(0,6,20,.7)" }}>
+      <div style={{ padding:"20px 32px", flexShrink:0, background:`linear-gradient(135deg,rgba(200,16,46,.2),rgba(0,14,40,.6))`, borderBottom:"1px solid rgba(255,255,255,.08)", display:"flex", alignItems:"center", gap:24, position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute", top:-50, right:-50, width:200, height:200, borderRadius:"50%", background:`radial-gradient(circle,${RED}20,transparent 70%)`, filter:"blur(36px)" }} />
         <div style={{ flex:1, position:"relative", zIndex:2 }}>
-          <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"5px 14px", borderRadius:8, background:`${B.red}25`, border:`1px solid ${B.red}35`, marginBottom:9 }}>
-            <Icon name="star" size={13} color={B.red} />
-            <span style={{ fontSize:11, color:B.red, fontWeight:700, letterSpacing:1, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>
+          <div style={{ display:"inline-flex", alignItems:"center", gap:7, padding:"5px 13px", borderRadius:8, background:`${RED}28`, border:`1px solid ${RED}40`, marginBottom:9 }}>
+            <Icon name="star" size={13} color={RED} />
+            <span style={{ fontSize:11, color:RED, fontWeight:700, letterSpacing:1, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>
               {new Date().toLocaleDateString("fr-FR",{ month:"long", year:"numeric" })}
             </span>
           </div>
           <h2 style={{ fontSize:23, fontWeight:900, color:"#fff", letterSpacing:-.4, margin:0 }}>La Sélection du Mois</h2>
-          <p style={{ fontSize:13, color:"rgba(255,255,255,.45)", marginTop:4 }}>Nos produits coup de cœur sélectionnés par nos experts</p>
+          <p style={{ fontSize:13, color:"rgba(255,255,255,.5)", marginTop:4 }}>Nos produits coup de cœur sélectionnés par nos experts</p>
         </div>
-        <div style={{ position:"relative", zIndex:2, display:"flex", flexDirection:"column", alignItems:"center", gap:7, opacity:vis?1:0, transform:vis?"scale(1)":"scale(.88)", transition:"all .6s .3s cubic-bezier(.22,1,.36,1)" }}>
-          <div style={{ background:"#fff", borderRadius:13, padding:7, boxShadow:"0 8px 32px rgba(0,0,0,.35)", animation:"qrFloat 4s ease-in-out infinite" }}>
-            <img src={QR_URL} alt="QR" style={{ width:84, height:84, borderRadius:7, display:"block" }} />
+
+        {/* QR CODE — plus grand et plus visible */}
+        <div style={{
+          position:"relative", zIndex:2,
+          display:"flex", flexDirection:"column", alignItems:"center", gap:9,
+          opacity:vis?1:0, transform:vis?"scale(1)":"scale(.85)",
+          transition:"all .5s .25s cubic-bezier(.22,1,.36,1)",
+        }}>
+          <div style={{
+            background:"#fff", borderRadius:16, padding:10,
+            boxShadow:"0 0 0 3px rgba(255,255,255,.3), 0 12px 40px rgba(0,0,0,.5)",
+            animation:"qrPulse 3s ease-in-out infinite",
+          }}>
+            <img src={QR_URL} alt="QR" style={{ width:110, height:110, borderRadius:8, display:"block" }} />
           </div>
-          <div style={{ display:"flex", alignItems:"center", gap:4, padding:"4px 11px", borderRadius:100, background:"rgba(255,255,255,.09)", border:"1px solid rgba(255,255,255,.12)" }}>
-            <Icon name="download" size={11} color="rgba(255,255,255,.65)" />
-            <span style={{ fontSize:9, color:"rgba(255,255,255,.55)", fontWeight:600, letterSpacing:1, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>Scannez-moi</span>
+          <div style={{ display:"flex", alignItems:"center", gap:5, padding:"5px 13px", borderRadius:100, background:"rgba(255,255,255,.15)", border:"1px solid rgba(255,255,255,.3)" }}>
+            <Icon name="download" size={12} color="#fff" />
+            <span style={{ fontSize:10, color:"#fff", fontWeight:700, letterSpacing:1, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>
+              Télécharger le catalogue
+            </span>
           </div>
         </div>
       </div>
+
       <div style={{ flex:1, background:"#0c1016", display:"flex", flexDirection:"column" }}>
         {isAndroid ? (
-          <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:30, padding:36, animation:"fadeIn .5s ease both" }}>
-            <div style={{ background:"#fff", borderRadius:20, padding:15, boxShadow:"0 20px 70px rgba(0,0,0,.6)", animation:"qrFloat 4s ease-in-out infinite" }}>
-              <img src={QR_URL} alt="QR PDF" style={{ width:170, height:170, borderRadius:13, display:"block" }} />
+          <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:28, padding:36, animation:"fadeIn .5s ease both" }}>
+            <div style={{ background:"#fff", borderRadius:22, padding:14, boxShadow:"0 0 0 4px rgba(255,255,255,.25), 0 20px 60px rgba(0,0,0,.6)", animation:"qrPulse 3s ease-in-out infinite" }}>
+              <img src={QR_URL} alt="QR PDF" style={{ width:180, height:180, borderRadius:12, display:"block" }} />
             </div>
             <div style={{ textAlign:"center" }}>
-              <p style={{ fontSize:21, fontWeight:800, color:"#fff", marginBottom:9 }}>Scannez pour voir la sélection</p>
-              <p style={{ fontSize:14, color:"rgba(255,255,255,.45)", lineHeight:1.7 }}>Ouvrez l'appareil photo de votre téléphone<br/>et pointez-le vers le QR code</p>
+              <p style={{ fontSize:20, fontWeight:800, color:"#fff", marginBottom:8 }}>Télécharger le catalogue</p>
+              <p style={{ fontSize:14, color:"rgba(255,255,255,.5)", lineHeight:1.7 }}>Scannez le QR code avec votre appareil photo<br/>ou cliquez sur le bouton ci-dessous</p>
             </div>
-            <a href={PDF_URL} target="_blank" rel="noopener noreferrer" style={{ display:"flex", alignItems:"center", gap:11, padding:"14px 36px", borderRadius:15, background:`linear-gradient(135deg,${B.red},#FF2D55)`, color:"#fff", textDecoration:"none", fontSize:15, fontWeight:700, boxShadow:`0 8px 30px ${B.red}50` }}>
-              <Icon name="download" size={19} color="#fff" /> Ouvrir le PDF
+            <a href={PDF_URL} target="_blank" rel="noopener noreferrer" style={{ display:"flex", alignItems:"center", gap:10, padding:"14px 34px", borderRadius:14, background:`linear-gradient(135deg,${RED},#FF2D55)`, color:"#fff", textDecoration:"none", fontSize:15, fontWeight:700, boxShadow:`0 8px 28px ${RED}55` }}>
+              <Icon name="download" size={18} color="#fff" /> Ouvrir le PDF
             </a>
           </div>
         ) : (
@@ -324,21 +350,22 @@ const SelectionMois = () => {
   );
 };
 
+// ─── PAGE : SITE WEB ───────────────────────────────────────────────
 const SiteWeb = ({ url }: { url:string }) => {
   const [loading, setLoading] = useState(true);
   return (
     <div style={{ height:"100%", display:"flex", flexDirection:"column" }}>
-      <div style={{ padding:"9px 20px", background:"rgba(0,8,24,.6)", borderBottom:"1px solid rgba(255,255,255,.08)", flexShrink:0, display:"flex" }}>
-        <div style={{ flex:1, background:"rgba(255,255,255,.05)", borderRadius:9, padding:"9px 15px", display:"flex", alignItems:"center", gap:8 }}>
+      <div style={{ padding:"9px 20px", background:"rgba(0,6,20,.65)", borderBottom:"1px solid rgba(255,255,255,.09)", flexShrink:0, display:"flex" }}>
+        <div style={{ flex:1, background:"rgba(255,255,255,.06)", borderRadius:9, padding:"9px 14px", display:"flex", alignItems:"center", gap:8 }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:11, color:"rgba(255,255,255,.42)" }}>{url}</span>
+          <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:11, color:"rgba(255,255,255,.45)" }}>{url}</span>
         </div>
       </div>
       <div style={{ flex:1, position:"relative" }}>
         {loading && (
-          <div style={{ position:"absolute", inset:0, background:"rgba(0,8,24,.85)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:2 }}>
+          <div style={{ position:"absolute", inset:0, background:"rgba(0,6,20,.88)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:2 }}>
             <div style={{ textAlign:"center" }}>
-              <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:18 }}>
+              <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:16 }}>
                 {COLORS.slice(0,6).map((c,i) => <div key={i} style={{ width:11, height:11, borderRadius:"50%", background:c, animation:`float .9s ${i*.12}s ease-in-out infinite` }} />)}
               </div>
               <div style={{ fontSize:14, color:"rgba(255,255,255,.4)", fontWeight:500 }}>Chargement…</div>
@@ -351,25 +378,25 @@ const SiteWeb = ({ url }: { url:string }) => {
   );
 };
 
-// PARTENAIRES — sans carré derrière les logos, pleine page
+// ─── PAGE : PARTENAIRES — logos grands sans encadrement ────────────
 const Partenaires = () => {
   const [vis, setVis] = useState(false);
   useEffect(() => { const t = setTimeout(()=>setVis(true), 80); return ()=>clearTimeout(t); }, []);
   return (
-    <div style={{ height:"100%", overflow:"auto", background:"rgba(0,8,24,.7)" }}>
-      {/* Header simplifié — titre fixe sans date */}
-      <div style={{ background:"linear-gradient(135deg,rgba(13,148,136,.18),rgba(0,16,44,.6))", padding:"32px 44px 36px", position:"relative", overflow:"hidden", borderBottom:"1px solid rgba(255,255,255,.07)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"rgba(0,6,20,.75)" }}>
+      <div style={{ background:"linear-gradient(135deg,rgba(13,148,136,.2),rgba(0,14,40,.65))", padding:"30px 40px 34px", position:"relative", overflow:"hidden", borderBottom:"1px solid rgba(255,255,255,.08)" }}>
         {COLORS.slice(0,4).map((c,i) => (
-          <div key={i} style={{ position:"absolute", width:160, height:160, borderRadius:"50%", background:`radial-gradient(circle,${c}18,transparent 70%)`, top:-25+i*22, right:i*65, filter:"blur(26px)" }} />
+          <div key={i} style={{ position:"absolute", width:150, height:150, borderRadius:"50%", background:`radial-gradient(circle,${c}20,transparent 70%)`, top:-20+i*20, right:i*60, filter:"blur(24px)" }} />
         ))}
         <div style={{ position:"relative", zIndex:2 }}>
-          <h2 style={{ fontSize:30, fontWeight:900, color:"#fff", letterSpacing:-.5, margin:0 }}>Nos Partenaires</h2>
-          <p style={{ fontSize:14, color:"rgba(255,255,255,.5)", marginTop:7 }}>L'excellence au service de vos projets</p>
+          <h2 style={{ fontSize:30, fontWeight:900, color:"#fff", letterSpacing:-.5, margin:0 }}>Nos Partenaires du Jour</h2>
+          <p style={{ fontSize:14, color:"rgba(255,255,255,.52)", marginTop:6 }}>L'excellence au service de vos projets</p>
         </div>
       </div>
       <Strip h={3} />
-      {/* Grille pleine largeur */}
-      <div style={{ padding:"28px 36px", display:"flex", flexWrap:"wrap", gap:16, justifyContent:"center" }}>
+
+      {/* GRILLE — logos très grands, pas d'encadrement */}
+      <div style={{ padding:"24px 30px", display:"flex", flexWrap:"wrap", gap:20, justifyContent:"center" }}>
         {PARTNERS.map((p,i) => (
           <a
             key={i}
@@ -378,45 +405,52 @@ const Partenaires = () => {
             rel="noopener noreferrer"
             className="pcard"
             style={{
-              // Pleine largeur : 2 colonnes qui remplissent
-              flex:"1 1 calc(50% - 10px)",
-              minWidth:200,
-              borderRadius:18,
+              flex:"1 1 calc(50% - 12px)",
+              minWidth:210,
+              borderRadius:20,
               border:"1px solid rgba(255,255,255,.1)",
+              background:"rgba(255,255,255,.06)",
               backdropFilter:"blur(10px)",
-              padding:"26px 20px",
-              display:"flex", flexDirection:"column", alignItems:"center", gap:12,
-              boxShadow:"0 4px 22px rgba(0,0,0,.25)",
-              background:"rgba(255,255,255,.05)",
+              padding:"30px 20px 24px",
+              display:"flex", flexDirection:"column", alignItems:"center", gap:16,
+              boxShadow:"0 4px 22px rgba(0,0,0,.3)",
               opacity: vis ? 1 : 0,
-              transform: vis ? "translateY(0)" : "translateY(18px)",
-              transition:`all .45s ${.08+i*.07}s cubic-bezier(.4,0,.2,1)`,
+              transform: vis ? "translateY(0)" : "translateY(16px)",
+              transition:`all .4s ${.06+i*.07}s cubic-bezier(.4,0,.2,1)`,
               cursor:"pointer", textDecoration:"none",
             }}
           >
-            {/* Logo sans carré blanc — fond transparent */}
+            {/* Logo grand, sans fond, sans encadrement */}
             <img
               src={p.logo}
               alt={p.name}
-              style={{ width:70, height:70, objectFit:"contain", filter:"brightness(0) invert(1)" }}
+              style={{
+                width:130,
+                height:80,
+                objectFit:"contain",
+                // Pas de filter invert — on affiche le logo tel quel
+                // Si fond blanc sur fond sombre : on met un léger halo blanc derrière
+                filter:"drop-shadow(0 0 8px rgba(255,255,255,.15))",
+              }}
               onError={(e) => {
                 const el = e.target as HTMLImageElement;
                 el.style.display = "none";
-                const div = document.createElement("div");
-                div.style.cssText = `width:70px;height:70px;border-radius:14px;background:linear-gradient(135deg,#0D9488,#14B8A6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:22px;font-family:Outfit,sans-serif`;
-                div.textContent = p.name.charAt(0);
-                el.parentNode?.insertBefore(div, el.nextSibling);
+                const d = document.createElement("div");
+                d.style.cssText = "width:130px;height:80px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;color:rgba(255,255,255,.7);font-family:Outfit,sans-serif";
+                d.textContent = p.name.charAt(0);
+                el.parentNode?.insertBefore(d, el.nextSibling);
               }}
             />
             <div style={{ textAlign:"center" }}>
-              <div style={{ fontSize:15, fontWeight:700, color:"#fff" }}>{p.name}</div>
-              <div style={{ fontSize:10, color:"rgba(255,255,255,.38)", marginTop:3, fontFamily:"'JetBrains Mono',monospace", letterSpacing:.4 }}>{p.desc}</div>
+              <div style={{ fontSize:16, fontWeight:700, color:"#fff" }}>{p.name}</div>
+              <div style={{ fontSize:11, color:"rgba(255,255,255,.42)", marginTop:4, fontFamily:"'JetBrains Mono',monospace", letterSpacing:.4 }}>{p.desc}</div>
             </div>
           </a>
         ))}
       </div>
-      <div style={{ padding:"0 36px 28px", textAlign:"center" }}>
-        <div style={{ padding:"18px 24px", borderRadius:14, background:"rgba(255,255,255,.03)", border:"1px dashed rgba(255,255,255,.1)" }}>
+
+      <div style={{ padding:"4px 30px 28px", textAlign:"center" }}>
+        <div style={{ padding:"16px 22px", borderRadius:14, background:"rgba(255,255,255,.03)", border:"1px dashed rgba(255,255,255,.1)" }}>
           <p style={{ fontSize:13, color:"rgba(255,255,255,.4)", lineHeight:1.7 }}>
             Vous souhaitez devenir partenaire Unikalo ?<br/>
             <strong style={{ color:"rgba(255,255,255,.72)" }}>Contactez-nous</strong> pour en savoir plus.
@@ -427,13 +461,14 @@ const Partenaires = () => {
   );
 };
 
+// ─── APP ───────────────────────────────────────────────────────────
 export default function App() {
   const [screen,  setScreen]  = useState<"home"|"content">("home");
   const [content, setContent] = useState<BtnConfig|null>(null);
 
   useEffect(() => {
     if (screen === "home") return;
-    const t = setTimeout(() => { setScreen("home"); setContent(null); }, 120000);
+    const t = setTimeout(() => { setScreen("home"); setContent(null); }, 120_000);
     return () => clearTimeout(t);
   }, [screen, content]);
 
