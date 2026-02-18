@@ -194,7 +194,7 @@ const Home = ({ onSelect }: { onSelect:(b:BtnConfig)=>void }) => {
             transform: ready ? "translateY(0)" : "translateY(40px)",
             transition:"opacity .6s .1s cubic-bezier(.22,1,.36,1), transform .6s .1s cubic-bezier(.22,1,.36,1)",
           }}>
-            {SITE_BTNS.map((btn, i) => (
+            {SITE_BTNS.map((btn) => (
               <button
                 key={btn.id}
                 className="gbtn"
