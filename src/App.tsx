@@ -76,21 +76,38 @@ const Icon = ({ name, size=24, color="currentColor" }: { name:string; size?:numb
   );
 };
 
-// ─── VIDÉO — pure HTML, zéro JS pour éviter tout clignotement
-// Le navigateur gère seul le loop/autoplay, on ne touche JAMAIS à la vidéo en JS
-const VideoBackground = () => (
-  <div style={{ position:"fixed", inset:0, zIndex:0, background:"#000" }}>
-    <video
-      autoPlay
-      muted
-      loop
-      playsInline
-      style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", display:"block" }}
-    >
-      <source src={VIDEO_MP4} type="video/mp4" />
-    </video>
-  </div>
-);
+// ─── VIDÉO — robuste, anti-clignotement
+// Stratégie : préchargement via <link rel=preload> injecté dans <head> au montage,
+// + autoPlay/muted/loop natifs — JAMAIS de v.load() qui cause le flash
+const VideoBackground = () => {
+  useEffect(() => {
+    // Injecte un preload hint dans le <head> pour que le navigateur
+    // charge la vidéo en priorité haute AVANT de l'afficher
+    const existing = document.querySelector(`link[href="${VIDEO_MP4}"]`);
+    if (!existing) {
+      const link = document.createElement("link");
+      link.rel      = "preload";
+      link.as       = "video";
+      link.href     = VIDEO_MP4;
+      link.type     = "video/mp4";
+      document.head.appendChild(link);
+    }
+  }, []);
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:0, background:"#000" }}>
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+      >
+        <source src={VIDEO_MP4} type="video/mp4" />
+      </video>
+    </div>
+  );
+};
 
 // ─── TYPES & CONFIG BOUTONS ────────────────────────────────────────
 interface BtnConfig { id:string; label:string; sub:string; icon:string; accent:string; gradient:string; type:string; url?:string; bgImage:string; }
@@ -345,8 +362,8 @@ const Partenaires = () => {
       </div>
       <Strip h={3} />
 
-      {/* GRILLE — logos énormes, AUCUNE carte, AUCUN fond, juste les logos */}
-      <div style={{ padding:"20px 24px", display:"flex", flexWrap:"wrap", gap:32, justifyContent:"center", alignItems:"center" }}>
+      {/* GRILLE — logos directs, aucun encadrement, aucune carte */}
+      <div style={{ padding:"20px 24px", display:"flex", flexWrap:"wrap", gap:36, justifyContent:"center", alignItems:"center" }}>
         {PARTNERS.map((p,i) => (
           <a
             key={i}
@@ -357,42 +374,37 @@ const Partenaires = () => {
             style={{
               flex:"1 1 calc(50% - 20px)",
               minWidth:220,
-              display:"flex", flexDirection:"column", alignItems:"center", gap:12,
+              display:"flex", flexDirection:"column", alignItems:"center", gap:14,
               opacity: vis ? 1 : 0,
               transform: vis ? "translateY(0)" : "translateY(14px)",
               transition:`all .4s ${.06+i*.07}s cubic-bezier(.4,0,.2,1)`,
               cursor:"pointer", textDecoration:"none",
-              padding:"16px 12px",
-              // Aucun fond, aucune bordure, aucune card
+              padding:"8px",
               background:"transparent",
               border:"none",
-              borderRadius:0,
             }}
           >
-            {/* Logo très grand — fond blanc léger pour lisibilité */}
-            <div style={{
-              width:"100%", maxWidth:280, height:120,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              background:"rgba(255,255,255,0.92)",
-              borderRadius:16,
-              padding:"12px 24px",
-            }}>
-              <img
-                src={p.logo}
-                alt={p.name}
-                style={{ maxWidth:"100%", maxHeight:96, objectFit:"contain" }}
-                onError={(e) => {
-                  const el = e.target as HTMLImageElement;
-                  el.style.display = "none";
-                  const d = document.createElement("div");
-                  d.style.cssText = "font-size:48px;font-weight:900;color:#333;font-family:Outfit,sans-serif";
-                  d.textContent = p.name.charAt(0);
-                  el.parentNode?.insertBefore(d, el.nextSibling);
-                }}
-              />
-            </div>
+            {/* Logo sans aucun encadrement — filtre brightness pour les logos sombres */}
+            <img
+              src={p.logo}
+              alt={p.name}
+              style={{
+                width:220,
+                height:100,
+                objectFit:"contain",
+                filter:"brightness(0) invert(1) drop-shadow(0 2px 12px rgba(255,255,255,.2))",
+              }}
+              onError={(e) => {
+                const el = e.target as HTMLImageElement;
+                el.style.display = "none";
+                const d = document.createElement("div");
+                d.style.cssText = "width:220px;height:100px;display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:900;color:rgba(255,255,255,.8);font-family:Outfit,sans-serif;text-shadow:0 2px 12px rgba(0,0,0,.6)";
+                d.textContent = p.name.charAt(0);
+                el.parentNode?.insertBefore(d, el.nextSibling);
+              }}
+            />
             <div style={{ textAlign:"center" }}>
-              <div style={{ fontSize:17, fontWeight:700, color:"#fff", textShadow:"0 2px 8px rgba(0,0,0,.6)" }}>{p.name}</div>
+              <div style={{ fontSize:17, fontWeight:700, color:"#fff", textShadow:"0 2px 10px rgba(0,0,0,.7)" }}>{p.name}</div>
               <div style={{ fontSize:11, color:"rgba(255,255,255,.5)", marginTop:3, fontFamily:"'JetBrains Mono',monospace" }}>{p.desc}</div>
             </div>
           </a>
