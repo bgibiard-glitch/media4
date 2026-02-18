@@ -154,10 +154,12 @@ const VideoBackground = () => {
 interface BtnConfig { id:string; label:string; sub:string; icon:string; accent:string; gradient:string; type:string; url?:string; bgImage:string; }
 
 const BTNS: BtnConfig[] = [
-  { id:"nuances",      label:"Site Web : Nuances Unikalo", sub:"Découvrez nos nuances de couleurs", icon:"web",      accent:"#7D5FB5", gradient:"linear-gradient(135deg,#7D5FB5,#A87FD6)", type:"web",      url:"https://nuances-unikalo.com",                                 bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
-  { id:"site",         label:"Site Web : Unikalo",         sub:"Explorez notre univers",            icon:"web",      accent:"#4A7FB5", gradient:"linear-gradient(135deg,#4A7FB5,#6BA3D6)", type:"web",      url:"https://unikalo.com",                                         bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
-  { id:"selection",    label:"La Sélection du Mois",       sub:"Découvrez nos coups de cœur",       icon:"star",     accent:RED,       gradient:`linear-gradient(135deg,${RED},#FF2D55)`,  type:"pdf",                                                                         bgImage:"https://media4-xues.vercel.app/laselection.png" },
-  { id:"partenaires",  label:"Nos Partenaires du Jour",    sub:"L'excellence au quotidien",         icon:"partners", accent:"#14B8A6", gradient:"linear-gradient(135deg,#0D9488,#14B8A6)",type:"partners",                                                                    bgImage:"https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80" },
+  { id:"selection",    label:"La Sélection du Mois",    sub:"Découvrez nos coups de cœur", icon:"star",     accent:RED,       gradient:`linear-gradient(135deg,${RED},#FF2D55)`,  type:"pdf",                                                                         bgImage:"https://media4-xues.vercel.app/laselection.png" },
+  { id:"partenaires",  label:"Nos Partenaires du Jour", sub:"L'excellence au quotidien",   icon:"partners", accent:"#14B8A6", gradient:"linear-gradient(135deg,#0D9488,#14B8A6)",type:"partners",                                                                    bgImage:"https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80" },
+];
+const SITE_BTNS = [
+  { id:"nuances", label:"Nuances Unikalo", sub:"Nos nuances de couleurs", icon:"web" as const, accent:"#7D5FB5", gradient:"linear-gradient(135deg,#7D5FB5,#A87FD6)", url:"https://nuances-unikalo.com", bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
+  { id:"site",    label:"Unikalo",         sub:"Explorez notre univers",  icon:"web" as const, accent:"#4A7FB5", gradient:"linear-gradient(135deg,#4A7FB5,#6BA3D6)", url:"https://unikalo.com",         bgImage:"https://media4-xues.vercel.app/siteUNIKALO.png" },
 ];
 
 // ─── HOME ─────────────────────────────────────────────────────────
@@ -182,8 +184,46 @@ const Home = ({ onSelect }: { onSelect:(b:BtnConfig)=>void }) => {
           <img src={LOGO_URL} alt="Unikalo" style={{ height:130, width:"auto", maxWidth:"65%", objectFit:"contain", opacity:1 }} />
         </div>
 
-        {/* 3 BOUTONS — gap plus grand */}
+        {/* BOUTONS */}
         <div style={{ display:"flex", flexDirection:"column", gap:44 }}>
+
+          {/* LIGNE DOUBLE — Site Web Nuances + Site Web Unikalo côte à côte */}
+          <div style={{
+            display:"flex", gap:14, height:118,
+            opacity: ready ? 1 : 0,
+            transform: ready ? "translateY(0)" : "translateY(40px)",
+            transition:"opacity .6s .1s cubic-bezier(.22,1,.36,1), transform .6s .1s cubic-bezier(.22,1,.36,1)",
+          }}>
+            {SITE_BTNS.map((btn, i) => (
+              <button
+                key={btn.id}
+                className="gbtn"
+                onClick={() => onSelect({ ...btn, type:"web" })}
+                style={{
+                  flex:1, display:"flex", alignItems:"center",
+                  height:118, borderRadius:22, padding:0,
+                  background:"rgba(0,4,14,0.28)",
+                  backdropFilter:"blur(16px)",
+                  WebkitBackdropFilter:"blur(16px)",
+                  border:"1px solid rgba(255,255,255,0.18)",
+                  boxShadow:"0 8px 36px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,.06)",
+                }}
+              >
+                <div style={{ position:"absolute", inset:0, borderRadius:22, backgroundImage:`url(${btn.bgImage})`, backgroundSize:"cover", backgroundPosition:"center", opacity:0.55 }} />
+                <div style={{ position:"absolute", inset:0, borderRadius:22, background:"linear-gradient(90deg,rgba(0,4,14,.78) 0%,rgba(0,4,14,.18) 50%,rgba(0,4,14,.40) 100%)" }} />
+                <div style={{ position:"absolute", top:0, left:0, bottom:0, width:5, borderRadius:"22px 0 0 22px", background:btn.gradient, boxShadow:`0 0 22px ${btn.accent}80` }} />
+                <div style={{ position:"relative", zIndex:2, flex:1, paddingLeft:20 }}>
+                  <div style={{ fontSize:16, fontWeight:800, color:"#fff", letterSpacing:-.2, textShadow:"0 2px 14px rgba(0,0,0,.85)", lineHeight:1.2 }}>{btn.label}</div>
+                  <div style={{ fontSize:11, color:"rgba(255,255,255,.75)", marginTop:4, textShadow:"0 1px 6px rgba(0,0,0,.7)" }}>{btn.sub}</div>
+                </div>
+                <div style={{ position:"relative", zIndex:2, marginRight:16, width:36, height:36, borderRadius:10, flexShrink:0, background:"rgba(255,255,255,.1)", border:"1px solid rgba(255,255,255,.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  <Icon name="arrow" size={17} color="rgba(255,255,255,.85)" />
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* BOUTONS SIMPLES */}
           {BTNS.map((btn, i) => (
             <button
               key={btn.id}
@@ -191,32 +231,24 @@ const Home = ({ onSelect }: { onSelect:(b:BtnConfig)=>void }) => {
               onClick={() => onSelect(btn)}
               style={{
                 display:"flex", alignItems:"center",
-                height:118,
-                borderRadius:22,
-                // fond plus transparent pour voir l'image
+                height:118, borderRadius:22, padding:0,
                 background:"rgba(0,4,14,0.28)",
                 backdropFilter:"blur(16px)",
                 WebkitBackdropFilter:"blur(16px)",
                 border:"1px solid rgba(255,255,255,0.18)",
                 boxShadow:"0 8px 36px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,.06)",
-                padding:0,
                 opacity: ready ? 1 : 0,
                 transform: ready ? "translateY(0)" : "translateY(40px)",
-                transition:`opacity .6s ${.1+i*.13}s cubic-bezier(.22,1,.36,1), transform .6s ${.1+i*.13}s cubic-bezier(.22,1,.36,1)`,
+                transition:`opacity .6s ${.23+i*.13}s cubic-bezier(.22,1,.36,1), transform .6s ${.23+i*.13}s cubic-bezier(.22,1,.36,1)`,
               }}
             >
-              {/* IMAGE DE FOND — beaucoup plus visible */}
               <div style={{ position:"absolute", inset:0, borderRadius:22, backgroundImage:`url(${btn.bgImage})`, backgroundSize:"cover", backgroundPosition:"center", opacity:0.55 }} />
-              {/* Overlay léger juste pour lisibilité du texte */}
               <div style={{ position:"absolute", inset:0, borderRadius:22, background:"linear-gradient(90deg,rgba(0,4,14,.78) 0%,rgba(0,4,14,.18) 50%,rgba(0,4,14,.40) 100%)" }} />
-              {/* Barre colorée gauche */}
               <div style={{ position:"absolute", top:0, left:0, bottom:0, width:5, borderRadius:"22px 0 0 22px", background:btn.gradient, boxShadow:`0 0 22px ${btn.accent}80` }} />
-              {/* Texte */}
               <div style={{ position:"relative", zIndex:2, flex:1, paddingLeft:36 }}>
                 <div style={{ fontSize:24, fontWeight:800, color:"#fff", letterSpacing:-.3, textShadow:"0 2px 14px rgba(0,0,0,.85)", lineHeight:1.2 }}>{btn.label}</div>
                 <div style={{ fontSize:13, color:"rgba(255,255,255,.75)", marginTop:5, textShadow:"0 1px 6px rgba(0,0,0,.7)" }}>{btn.sub}</div>
               </div>
-              {/* Flèche */}
               <div style={{ position:"relative", zIndex:2, marginRight:28, width:42, height:42, borderRadius:12, flexShrink:0, background:"rgba(255,255,255,.1)", border:"1px solid rgba(255,255,255,.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
                 <Icon name="arrow" size={20} color="rgba(255,255,255,.85)" />
               </div>
