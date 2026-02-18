@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { ReactNode, CSSProperties } from "react";
 
 const RED  = "#C8102E";
@@ -76,35 +76,76 @@ const Icon = ({ name, size=24, color="currentColor" }: { name:string; size?:numb
   );
 };
 
-// ─── VIDÉO — robuste, anti-clignotement
-// Stratégie : préchargement via <link rel=preload> injecté dans <head> au montage,
-// + autoPlay/muted/loop natifs — JAMAIS de v.load() qui cause le flash
+// ─── VIDÉO — rendu via Canvas (solution définitive anti-freeze/clignotement)
+// La vidéo tourne en hidden, le canvas recopie chaque frame via requestAnimationFrame.
+// Le navigateur n'affiche JAMAIS la vidéo directement → zéro flash, zéro gap de loop.
 const VideoBackground = () => {
+  const videoRef  = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   useEffect(() => {
-    // Injecte un preload hint dans le <head> pour que le navigateur
-    // charge la vidéo en priorité haute AVANT de l'afficher
-    const existing = document.querySelector(`link[href="${VIDEO_MP4}"]`);
-    if (!existing) {
-      const link = document.createElement("link");
-      link.rel      = "preload";
-      link.as       = "video";
-      link.href     = VIDEO_MP4;
-      link.type     = "video/mp4";
-      document.head.appendChild(link);
-    }
+    const video  = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    // Adapter la résolution du canvas à l'écran
+    const resize = () => {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const ctx = canvas.getContext("2d");
+    let raf: number;
+
+    const draw = () => {
+      if (ctx && video.readyState >= 2) {
+        // Cover : calcule src rect pour centrer/rogner comme object-fit:cover
+        const vw = video.videoWidth  || canvas.width;
+        const vh = video.videoHeight || canvas.height;
+        const cw = canvas.width;
+        const ch = canvas.height;
+        const scale = Math.max(cw / vw, ch / vh);
+        const sw    = cw / scale;
+        const sh    = ch / scale;
+        const sx    = (vw - sw) / 2;
+        const sy    = (vh - sh) / 2;
+        ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
+      }
+      raf = requestAnimationFrame(draw);
+    };
+
+    video.muted = true;
+    video.play().catch(() => {});
+    raf = requestAnimationFrame(draw);
+
+    // Fallback si la vidéo se met en pause (veille réseau)
+    const onPause = () => { if (!video.ended) video.play().catch(() => {}); };
+    video.addEventListener("pause", onPause);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+      video.removeEventListener("pause", onPause);
+    };
   }, []);
 
   return (
     <div style={{ position:"fixed", inset:0, zIndex:0, background:"#000" }}>
+      {/* Vidéo cachée — le canvas l'affiche */}
       <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+        ref={videoRef}
+        autoPlay muted loop playsInline preload="auto"
+        style={{ display:"none" }}
       >
         <source src={VIDEO_MP4} type="video/mp4" />
       </video>
+      {/* Canvas = ce que l'utilisateur voit, jamais de flash */}
+      <canvas
+        ref={canvasRef}
+        style={{ position:"absolute", inset:0, width:"100%", height:"100%", display:"block" }}
+      />
     </div>
   );
 };
@@ -384,21 +425,20 @@ const Partenaires = () => {
               border:"none",
             }}
           >
-            {/* Logo sans aucun encadrement — filtre brightness pour les logos sombres */}
+            {/* Logo — TRÈS GRAND, pleine largeur, couleurs naturelles */}
             <img
               src={p.logo}
               alt={p.name}
               style={{
-                width:220,
-                height:100,
+                width:"100%",
+                height:180,
                 objectFit:"contain",
-                filter:"brightness(0) invert(1) drop-shadow(0 2px 12px rgba(255,255,255,.2))",
               }}
               onError={(e) => {
                 const el = e.target as HTMLImageElement;
                 el.style.display = "none";
                 const d = document.createElement("div");
-                d.style.cssText = "width:220px;height:100px;display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:900;color:rgba(255,255,255,.8);font-family:Outfit,sans-serif;text-shadow:0 2px 12px rgba(0,0,0,.6)";
+                d.style.cssText = "width:100%;height:180px;display:flex;align-items:center;justify-content:center;font-size:72px;font-weight:900;color:rgba(255,255,255,.85);font-family:Outfit,sans-serif";
                 d.textContent = p.name.charAt(0);
                 el.parentNode?.insertBefore(d, el.nextSibling);
               }}
