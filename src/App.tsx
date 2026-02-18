@@ -76,7 +76,7 @@ const Strip = ({ h=4, style={} }: { h?:number; style?:CSSProperties }) => (
 // ─── ICÔNES ───────────────────────────────────────────────
 const Icon = ({ name, size=24, color="currentColor" }: { name:string; size?:number; color?:string }) => {
   const P: Record<string,ReactNode> = {
-    web:      <><circle cx="12" cy="12" r="10" sw="1.5"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" strokeWidth="1.5"/></>,
+    web:      <><circle cx="12" cy="12" r="10" strokeWidth="1.5"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" strokeWidth="1.5"/></>,
     partners: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" strokeWidth="1.5"/><circle cx="9" cy="7" r="4" strokeWidth="1.5"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" strokeWidth="1.5"/></>,
     back:     <path d="M19 12H5m7-7l-7 7 7 7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>,
     home:     <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>,
@@ -110,9 +110,8 @@ const VideoBackground = () => {
         style={{
           position:"absolute", inset:0,
           width:"100%", height:"100%",
-          objectFit:"cover",
-          // Forcer sur WebKit/Safari
-          WebkitObjectFit:"cover" as any,
+          objectFit:"cover" as const,
+          
         }}
       >
         <source src={VIDEO_MP4} type="video/mp4" />
@@ -243,12 +242,7 @@ const Home = ({ onSelect }: { onSelect:(b:BtnConfig)=>void }) => {
             fontSize:25, fontWeight:800, lineHeight:1.3, color:"#fff",
             letterSpacing:-.3, textShadow:"0 4px 28px rgba(0,0,0,.65)",
           }}>
-            <span style={{
-              background:`linear-gradient(135deg,${B.red},#FF4D6A,#FF2D55,${B.red})`,
-              backgroundSize:"300% auto",
-              WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
-              animation:"shimmer 3s linear infinite", display:"inline",
-            }}>U</span>nikalo,{" "}
+            Unikalo,{" "}
             <span style={{
               background:`linear-gradient(135deg,${B.red},#FF4D6A,#FF2D55,${B.red})`,
               backgroundSize:"300% auto",
