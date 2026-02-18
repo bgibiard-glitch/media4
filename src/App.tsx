@@ -292,72 +292,36 @@ const Shell = ({ btn, onHome, children }: { btn:BtnConfig; onHome:()=>void; chil
   </div>
 );
 
-// ─── PAGE : SÉLECTION PDF — PDF.js mode livre 2 pages ─────────────
+// ─── PAGE : SÉLECTION PDF ──────────────────────────────────────────
+// Iframe directe Vercel (primary) → Google Docs Viewer (fallback auto)
 const SelectionMois = () => {
-  const [vis,        setVis]    = useState(false);
-  const [mode,       setMode]   = useState<"loading"|"ready"|"error">("loading");
-  const [totalPages, setTotal]  = useState(0);
-  const [spread,     setSpread] = useState(1);
-  const leftRef  = useRef<HTMLCanvasElement>(null);
-  const rightRef = useRef<HTMLCanvasElement>(null);
-  const pdfRef   = useRef<any>(null);
+  const [vis,    setVis]   = useState(false);
+  const [src,    setSrc]   = useState(PDF_URL);
+  const [loaded, setLoaded] = useState(false);
+  const [tries,  setTries]  = useState(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setTimeout(() => setVis(true), 80);
-
-    const load = () => {
-      const lib = (window as any).pdfjsLib;
-      lib.GlobalWorkerOptions.workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-      lib.getDocument({ url: PDF_URL, withCredentials: false })
-        .promise
-        .then((pdf: any) => {
-          pdfRef.current = pdf;
-          setTotal(pdf.numPages);
-          setMode("ready");
-        })
-        .catch(() => setMode("error"));
-    };
-
-    const existing = document.getElementById("pdfjs-script");
-    if (existing) {
-      (window as any).pdfjsLib ? load() : existing.addEventListener("load", load);
-    } else {
-      const s = document.createElement("script");
-      s.id  = "pdfjs-script";
-      s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-      s.onload  = load;
-      s.onerror = () => setMode("error");
-      document.head.appendChild(s);
-    }
+    // Si l'iframe ne charge pas en 10s → bascule sur Google Docs Viewer
+    timerRef.current = setTimeout(() => {
+      if (!loaded && tries === 0) {
+        setTries(1);
+        setLoaded(false);
+        setSrc(`https://docs.google.com/viewer?url=${encodeURIComponent(PDF_URL)}&embedded=true`);
+        // 2ème timeout : si Google Docs échoue aussi → QR
+        timerRef.current = setTimeout(() => {
+          if (!loaded) setTries(2);
+        }, 12000);
+      }
+    }, 10000);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, []);
 
-  const renderPage = useCallback(async (num: number, canvas: HTMLCanvasElement | null) => {
-    if (!canvas || !pdfRef.current) return;
-    const ctx = canvas.getContext("2d");
-    if (num < 1 || num > (pdfRef.current?.numPages ?? 0)) {
-      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-      canvas.width = 0;
-      return;
-    }
-    const page  = await pdfRef.current.getPage(num);
-    const maxH  = Math.max(300, window.innerHeight - 190);
-    const vp0   = page.getViewport({ scale: 1 });
-    const scale = maxH / vp0.height;
-    const vp    = page.getViewport({ scale });
-    canvas.width  = vp.width;
-    canvas.height = vp.height;
-    await page.render({ canvasContext: canvas.getContext("2d")!, viewport: vp }).promise;
-  }, []);
-
-  useEffect(() => {
-    if (mode !== "ready") return;
-    renderPage(spread,     leftRef.current);
-    renderPage(spread + 1, rightRef.current);
-  }, [spread, mode, renderPage]);
-
-  const canPrev = spread > 1;
-  const canNext = spread + 1 <= totalPages;
+  const onLoad = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setLoaded(true);
+  };
 
   return (
     <div style={{ height:"100%", display:"flex", flexDirection:"column", background:"rgba(0,6,20,.85)" }}>
@@ -373,107 +337,64 @@ const SelectionMois = () => {
             </span>
           </div>
           <h2 style={{ fontSize:20, fontWeight:900, color:"#fff", letterSpacing:-.3, margin:0 }}>La Sélection du Mois</h2>
-          {mode === "ready" && (
-            <p style={{ fontSize:11, color:"rgba(255,255,255,.4)", marginTop:2 }}>
-              Pages {spread}–{Math.min(spread+1, totalPages)} / {totalPages}
-            </p>
-          )}
+          <p style={{ fontSize:11, color:"rgba(255,255,255,.4)", marginTop:2 }}>Nos produits coup de cœur sélectionnés par nos experts</p>
         </div>
-        {/* QR */}
+        {/* QR cliquable */}
         <div style={{ position:"relative", zIndex:2, display:"flex", flexDirection:"column", alignItems:"center", gap:6, opacity:vis?1:0, transform:vis?"scale(1)":"scale(.85)", transition:"all .5s .2s cubic-bezier(.22,1,.36,1)" }}>
-          <div style={{ background:"#fff", borderRadius:13, padding:7, boxShadow:"0 0 0 3px rgba(255,255,255,.25), 0 8px 28px rgba(0,0,0,.5)", animation:"qrPulse 3s ease-in-out infinite" }}>
-            <img src={QR_URL} alt="QR" style={{ width:88, height:88, borderRadius:6, display:"block" }} />
-          </div>
-          <div style={{ display:"flex", alignItems:"center", gap:4, padding:"4px 10px", borderRadius:100, background:"rgba(255,255,255,.15)", border:"1px solid rgba(255,255,255,.28)" }}>
-            <Icon name="download" size={10} color="#fff" />
-            <span style={{ fontSize:9, color:"#fff", fontWeight:700, letterSpacing:1, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>Télécharger</span>
-          </div>
+          <a href={PDF_URL} target="_blank" rel="noopener noreferrer" style={{ display:"block" }}>
+            <div style={{ background:"#fff", borderRadius:13, padding:7, boxShadow:"0 0 0 3px rgba(255,255,255,.25), 0 8px 28px rgba(0,0,0,.5)", animation:"qrPulse 3s ease-in-out infinite" }}>
+              <img src={QR_URL} alt="QR" style={{ width:88, height:88, borderRadius:6, display:"block" }} />
+            </div>
+          </a>
+          <a href={PDF_URL} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:4, padding:"4px 10px", borderRadius:100, background:"rgba(255,255,255,.15)", border:"1px solid rgba(255,255,255,.28)", cursor:"pointer" }}>
+              <Icon name="download" size={10} color="#fff" />
+              <span style={{ fontSize:9, color:"#fff", fontWeight:700, letterSpacing:1, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>Télécharger</span>
+            </div>
+          </a>
         </div>
       </div>
 
       {/* Corps */}
-      <div style={{ flex:1, background:"#1a1a2e", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", overflow:"hidden", position:"relative" }}>
+      <div style={{ flex:1, position:"relative", background:"#f1f3f4" }}>
 
-        {/* Chargement */}
-        {mode === "loading" && (
-          <div style={{ textAlign:"center" }}>
-            <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:14 }}>
+        {/* Spinner tant que pas chargé */}
+        {!loaded && tries < 2 && (
+          <div style={{ position:"absolute", inset:0, background:"#1a1a2e", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16, zIndex:2, pointerEvents:"none" }}>
+            <div style={{ display:"flex", gap:6 }}>
               {[RED,"#4A7FB5","#14B8A6","#E8C840","#7D9B76","#C67B5C"].map((c,i) => (
                 <div key={i} style={{ width:10, height:10, borderRadius:"50%", background:c, animation:`float .9s ${i*.12}s ease-in-out infinite` }} />
               ))}
             </div>
-            <p style={{ color:"rgba(255,255,255,.45)", fontSize:13 }}>Chargement du catalogue…</p>
+            <p style={{ color:"rgba(255,255,255,.45)", fontSize:13 }}>
+              {tries === 0 ? "Chargement du catalogue…" : "Connexion en cours…"}
+            </p>
           </div>
         )}
 
-        {/* Erreur */}
-        {mode === "error" && (
-          <div style={{ textAlign:"center", padding:32, display:"flex", flexDirection:"column", alignItems:"center", gap:22 }}>
-            <div style={{ background:"#fff", borderRadius:20, padding:14, boxShadow:"0 0 0 4px rgba(255,255,255,.2), 0 16px 50px rgba(0,0,0,.6)" }}>
-              <img src={QR_URL} alt="QR" style={{ width:170, height:170, borderRadius:12, display:"block" }} />
+        {/* Fallback final : QR + lien direct */}
+        {tries >= 2 && (
+          <div style={{ position:"absolute", inset:0, background:"#1a1a2e", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:24, padding:36, textAlign:"center", zIndex:3 }}>
+            <div style={{ background:"#fff", borderRadius:20, padding:14, boxShadow:"0 0 0 4px rgba(255,255,255,.2), 0 16px 50px rgba(0,0,0,.6)", animation:"qrPulse 3s ease-in-out infinite" }}>
+              <img src={QR_URL} alt="QR" style={{ width:180, height:180, borderRadius:12, display:"block" }} />
             </div>
-            <p style={{ fontSize:18, fontWeight:800, color:"#fff" }}>Scannez pour voir le catalogue</p>
+            <p style={{ fontSize:19, fontWeight:800, color:"#fff" }}>Scannez pour voir le catalogue</p>
             <a href={PDF_URL} target="_blank" rel="noopener noreferrer"
-              style={{ display:"flex", alignItems:"center", gap:10, padding:"13px 30px", borderRadius:13, background:`linear-gradient(135deg,${RED},#FF2D55)`, color:"#fff", textDecoration:"none", fontSize:15, fontWeight:700, boxShadow:`0 8px 26px ${RED}55` }}>
+              style={{ display:"flex", alignItems:"center", gap:10, padding:"14px 32px", borderRadius:14, background:`linear-gradient(135deg,${RED},#FF2D55)`, color:"#fff", textDecoration:"none", fontSize:15, fontWeight:700, boxShadow:`0 8px 26px ${RED}55` }}>
               <Icon name="download" size={18} color="#fff" /> Ouvrir le PDF
             </a>
           </div>
         )}
 
-        {/* Mode livre — 2 pages côte à côte */}
-        {mode === "ready" && (
-          <>
-            <div style={{
-              display:"flex", gap:2, alignItems:"flex-start", justifyContent:"center",
-              overflow:"auto", width:"100%", height:"100%", padding:"16px 8px 56px",
-            }}>
-              {/* Page gauche */}
-              <canvas ref={leftRef} style={{
-                flexShrink:0, maxWidth:"49%",
-                boxShadow:"6px 0 24px rgba(0,0,0,.7)",
-                borderRadius:"3px 0 0 3px",
-              }} />
-              {/* Page droite */}
-              {spread + 1 <= totalPages && (
-                <canvas ref={rightRef} style={{
-                  flexShrink:0, maxWidth:"49%",
-                  boxShadow:"-6px 0 24px rgba(0,0,0,.7)",
-                  borderRadius:"0 3px 3px 0",
-                }} />
-              )}
-            </div>
-
-            {/* Barre navigation */}
-            <div style={{
-              position:"absolute", bottom:14, left:"50%", transform:"translateX(-50%)",
-              display:"flex", alignItems:"center", gap:8,
-              background:"rgba(0,0,0,.75)", backdropFilter:"blur(12px)",
-              borderRadius:100, padding:"7px 16px",
-              border:"1px solid rgba(255,255,255,.14)",
-            }}>
-              {/* Aller à la première */}
-              <button onClick={() => setSpread(1)} disabled={!canPrev}
-                style={{ background:"none", border:"none", cursor:canPrev?"pointer":"not-allowed", opacity:canPrev?1:.3, color:"#fff", display:"flex", padding:"3px 6px" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 17l-5-5 5-5"/><path d="M18 17l-5-5 5-5"/></svg>
-              </button>
-              <button onClick={() => setSpread(s => Math.max(1, s-2))} disabled={!canPrev}
-                style={{ background:"none", border:"none", cursor:canPrev?"pointer":"not-allowed", opacity:canPrev?1:.3, color:"#fff", display:"flex", padding:"3px 6px" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-              </button>
-              <span style={{ fontSize:12, color:"rgba(255,255,255,.75)", fontFamily:"'JetBrains Mono',monospace", minWidth:100, textAlign:"center" }}>
-                {spread}–{Math.min(spread+1, totalPages)} / {totalPages}
-              </span>
-              <button onClick={() => setSpread(s => Math.min(totalPages % 2 === 0 ? totalPages-1 : totalPages, s+2))} disabled={!canNext}
-                style={{ background:"none", border:"none", cursor:canNext?"pointer":"not-allowed", opacity:canNext?1:.3, color:"#fff", display:"flex", padding:"3px 6px" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-              </button>
-              {/* Aller à la dernière */}
-              <button onClick={() => setSpread(totalPages % 2 === 0 ? totalPages-1 : totalPages)} disabled={!canNext}
-                style={{ background:"none", border:"none", cursor:canNext?"pointer":"not-allowed", opacity:canNext?1:.3, color:"#fff", display:"flex", padding:"3px 6px" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 17l5-5-5-5"/><path d="M6 17l5-5-5-5"/></svg>
-              </button>
-            </div>
-          </>
+        {/* Iframe principale */}
+        {tries < 2 && (
+          <iframe
+            key={src}
+            src={src}
+            title="Sélection du mois"
+            onLoad={onLoad}
+            style={{ position:"absolute", inset:0, width:"100%", height:"100%", border:"none", display:"block" }}
+          />
         )}
       </div>
     </div>
