@@ -172,17 +172,17 @@ const Home = ({ onSelect }: { onSelect:(b:BtnConfig)=>void }) => {
         flex:1,
         display:"flex", flexDirection:"column",
         justifyContent:"space-between",
-        padding:"28px 44px 22px",
+        padding:"16px 44px 18px",
         maxWidth:820, width:"100%", margin:"0 auto",
       }}>
 
         {/* LOGO */}
         <div style={{ display:"flex", justifyContent:"center", animation:"revealUp .7s .05s cubic-bezier(.22,1,.36,1) both" }}>
-          <img src={LOGO_URL} alt="Unikalo" style={{ height:84, width:"auto", maxWidth:"52%", objectFit:"contain", opacity:1 }} />
+          <img src={LOGO_URL} alt="Unikalo" style={{ height:130, width:"auto", maxWidth:"65%", objectFit:"contain", opacity:1 }} />
         </div>
 
         {/* 3 BOUTONS — gap plus grand */}
-        <div style={{ display:"flex", flexDirection:"column", gap:28 }}>
+        <div style={{ display:"flex", flexDirection:"column", gap:44 }}>
           {BTNS.map((btn, i) => (
             <button
               key={btn.id}
@@ -225,14 +225,14 @@ const Home = ({ onSelect }: { onSelect:(b:BtnConfig)=>void }) => {
 
         {/* SLOGAN — gros, une seule ligne, U en rouge */}
         <div style={{ textAlign:"center", animation:"revealUp 1s .62s cubic-bezier(.22,1,.36,1) both" }}>
-          <h1 style={{ fontSize:22, fontWeight:900, lineHeight:1, color:"#fff", whiteSpace:"nowrap", textShadow:"0 3px 20px rgba(0,0,0,.8)", letterSpacing:-.2 }}>
+          <h1 style={{ fontSize:32, fontWeight:900, lineHeight:1, color:"#fff", whiteSpace:"nowrap", textShadow:"0 3px 20px rgba(0,0,0,.8)", letterSpacing:-.3 }}>
             <span style={{ color:RED }}>U</span>nikalo,{" "}
             <span style={{ background:`linear-gradient(135deg,${RED},#FF4D6A,#FF2D55,${RED})`, backgroundSize:"300% auto", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", animation:"shimmer 3s linear infinite" }}>
               1er fabricant français indépendant
             </span>
             {" "}de peintures bâtiment
           </h1>
-          <div style={{ marginTop:10, fontSize:14, fontWeight:700, color:"rgba(255,255,255,.75)", letterSpacing:4, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>
+          <div style={{ marginTop:12, fontSize:16, fontWeight:700, color:"rgba(255,255,255,.85)", letterSpacing:4, textTransform:"uppercase", fontFamily:"'JetBrains Mono',monospace" }}>
             Fabricant de peintures depuis 1936
           </div>
         </div>
