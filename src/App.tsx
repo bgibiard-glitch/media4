@@ -18,7 +18,7 @@ const PARTNERS = [
 ];
 
 const VIDEO_MP4 = "https://media4-xues.vercel.app/fondecran.mp4";
-const PDF_URL   = "https://media4-xues.vercel.app/pdf.pdf";
+const PDF_URL   = "https://media4-xues.vercel.app/pdf3.pdf";
 const QR_URL    = "https://media4-xues.vercel.app/qrcodepdf.png";
 const LOGO_URL  = "https://media4-duplicated-z3xl.bolt.host/logo.png";
 
